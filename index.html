@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cognitive Agility Suite</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0fdfa; /* Light teal background */
+            overscroll-behavior: none;
+            user-select: none; /* Prevent text selection during gameplay */
+        }
+        
+        .no-tap-highlight {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Animation for tiles */
+        .tile-pop {
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+        // ==========================================
+        // 1. DATA: WORD LIST
+        // ==========================================
+        // A curated list of words, heavy on 5-letter words for Wurdle, mixed with longer words for other games.
+        // In a production environment with an external file, this could easily be 5,000+ words.
+        const DICTIONARY_STRING = "apple alive adult about actor acute admit adopt adapt abuse alert alien alike allow alone along alter amaze angel anger angle angry apart apple apply arena argue arise armed armor array arrow asset audio audit avoid award aware badly baker bases basic basis beach beast begin belly below bench bingo birth black blame blind block blood board brain brand bread break brick bring broad brown brush build bunch buyer cabin cable camel catch cause chain chair chest chief child chill claim class clean clear click clock close coach coast count cover cream cross crowd crown curve cycle daily dance dawns delay depth digit dirty doing doubt dozen draft drain dream dress drill drink drive eager early earth eight elite empty enemy enjoy enter entry equal error event exact exist extra faded false fault fiber field fifth fifty fight final first fixed flame flash fleet floor fluid focus force frame frank front fruit fully funny giant glass globe going grace grand grant grass great green gross group guard guess guest guide habit happy heart heavy hello horse hotel house human ideal image index inner input issue joint judge juice labor large laser later laugh layer learn lease least leave legal level light limit lipid liver local logic loose lower lucky magic major maker match mayor meant metal might minor model money month moral motor mount mouse mouth movie music naked newly night noise north novel nurse occur ocean offer often order other ought paint panel paper party peace phase phone photo piece pilot pitch place plain plane plant plate point pound power press price pride prime print prior prize proof proud prove queen quick quiet quite radio raise range rapid ratio reach ready refer relax right river roman rough round royal rural scale scene scope score sense serve seven shape share sharp sheep sheet shift shirt shock short sight skill sleep small smart smile smith smoke solid solve sound south space speak speed spend split spoke sport staff stage stand start state steam steel stick still stock stone store storm story strip style sugar suite super sweet table taste teach theme thick thing think third those three throw tiger tight title toast today topic total touch tower track trade train treat trend trial trust truth uncle under union unity upset value video visit voice vowel waste watch water wheel where which white whole whose woman women words world worry worst would wound write wrong yield young youth active agility brain memory puzzle logic smart clever puzzle search words tower letter blocks logic puzzle search spell doe does dog dogs cat cats bat bats hat hats mat mats rat rats sat pat pats fat fats vat vats eat eats tea teas pea peas sea seas see sees bee bees fee fees tee tees toe toes hoe hoes roe roes woe woes ear ears era eras are area areas arm arms art arts ark arks ant ants and any all ask ass ate ave awe awl awn axe bad bag bah bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bit boa bob bog boo bop bow box boy bub bud bug bum bun bus but buy bye cab cad cam can cap car caw cay cob cod cog con coo cop cot cow cox coy coz cry cub cud cue cup cur cut dab dad dam dap daw day deb dee def del den dew dex did die dig dim din dip doc doe dog don dot dry dub dud due dug dun duo dye ear eat ebb eel egg ego eke elf elk elm emo emu end eng eon era erg err eta eve eye fab fad fag fan far fas fat fax fay fed fee fen fex fey fez fib fig fin fir fit fix fly fob foe fog foh fon fop for fox foy fro fry fub pug pub pun pup pur put pya pye pyx tab tag tam tap tar tas tat tau tav taw tax tea ted tee teg tel ten tet tew the thy tic tie tig tin tip tit toe tog tom ton too top tor tot tow toy try tub tug tui tun tup tut tux twa two tye udo ugh uke ump uns upo ups urb urn use uta vac van vat vau vav vaw vet vex via vie vig vim vis vow vox vug wab wad wae wag wan wap war was wat waw wax way web wed wee wen wet wha who why wig win wis wit wiz woe won woo wos wot wow wry wud wye wyn yag yak yam yap yar yaw yay yea yeh yen yep yes yet yew yin yip yob yod yon you yow yuk yum yup zag zap zas zax zea zed zee zek zig zin zip zit zoa zoo abs ace act add ado ads aft age ago aid ail aim air alb ale all alp alt amp amu ana and ane ant any ape app apt arc are arm art ash ask asp ass ate ave avo awe awl awn axe aye ays azo bad bag bah bal bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bio bis bit biz boa bob bog boo bop bow box boy bra bub bud bug bum bun bur bus but buy bye cab cad cam can cap car caw cay cee cel cep chi cob cod cog con coo cop cor cos cot cow cox coy coz cru cry cub cud cue cup cur cut dab dad dag dah dak dal dam dan dap daw day deb dee def del den dev dew dex dey dib did die dig dim din dip dis dit doc doe dog dol dom don dor dos dot dry dub dud due dug dun duo dye ear eat eau ebb ecu edh eel eff efs egg ego eke eld elf elk ell elm els eme emf emu end eng ens eon era ere erg ern err ers ess eta eth eve ewe eye fab fad fag fan far fas fat fax fay fed fee feg feh fem fen fer fes fet feu fex fey fez fib fid fie fig fil fin fir fit fix fly fob foe fog foh fon fop for fou fox foy fro fry fub fud pug pub pun pup pur put pya pye pyx";
+        
+        const ALL_WORDS = Array.from(new Set(DICTIONARY_STRING.toLowerCase().split(' ').filter(w => w.length >= 3)));
+        const WORDS_5_LETTER = ALL_WORDS.filter(w => w.length === 5);
+        
+        // This set is used for validating user input (e.g., in Word Tower)
+        // It starts with our base dictionary and is dynamically expanded on load.
+        const VALIDATION_DICTIONARY = new Set(ALL_WORDS);
+
+        // ==========================================
+        // 2. INDEXED DB HELPER
+        // ==========================================
+        const DB_NAME = 'CognitiveAgilityDB';
+        const DB_VERSION = 1;
+
+        const dbHelper = {
+            db: null,
+            init: function() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(DB_NAME, DB_VERSION);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('scores')) {
+                            db.createObjectStore('scores', { keyPath: 'gameId' });
+                        }
+                        if (!db.objectStoreNames.contains('state')) {
+                            db.createObjectStore('state', { keyPath: 'key' });
+                        }
+                    };
+                    req.onsuccess = (e) => {
+                        this.db = e.target.result;
+                        resolve(this.db);
+                    };
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            },
+            saveScore: function(gameId, score) {
+                if (!this.db) return Promise.resolve();
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readwrite');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => {
+                        const existing = req.result;
+                        if (!existing || score > existing.highScore) {
+                            store.put({ gameId, highScore: score });
+                        }
+                        resolve();
+                    };
+                });
+            },
+            getHighScore: function(gameId) {
+                if (!this.db) return Promise.resolve(0);
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readonly');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => resolve(req.result ? req.result.highScore : 0);
+                    req.onerror = () => resolve(0);
+                });
+            },
+            saveTime: function(gameId, time) {
+                if (!this.db) return Promise.resolve();
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readwrite');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => {
+                        const existing = req.result || { gameId };
+                        if (!existing.bestTime || time < existing.bestTime) {
+                            existing.bestTime = time;
+                            store.put(existing);
+                        }
+                        resolve();
+                    };
+                });
+            },
+            getBestTime: function(gameId) {
+                if (!this.db) return Promise.resolve(null);
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readonly');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => resolve(req.result && req.result.bestTime ? req.result.bestTime : null);
+                    req.onerror = () => resolve(null);
+                });
+            },
+            saveLeastMoves: function(gameId, moves) {
+                if (!this.db) return Promise.resolve();
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readwrite');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => {
+                        const existing = req.result || { gameId };
+                        if (!existing.bestMoves || moves < existing.bestMoves) {
+                            existing.bestMoves = moves;
+                            store.put(existing);
+                        }
+                        resolve();
+                    };
+                });
+            },
+            getLeastMoves: function(gameId) {
+                if (!this.db) return Promise.resolve(null);
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('scores', 'readonly');
+                    const store = tx.objectStore('scores');
+                    const req = store.get(gameId);
+                    req.onsuccess = () => resolve(req.result && req.result.bestMoves ? req.result.bestMoves : null);
+                    req.onerror = () => resolve(null);
+                });
+            },
+            getUsedWords: function(gameId) {
+                if (!this.db) return Promise.resolve([]);
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('state', 'readonly');
+                    const store = tx.objectStore('state');
+                    const req = store.get(`${gameId}_used`);
+                    req.onsuccess = () => resolve(req.result ? req.result.words : []);
+                    req.onerror = () => resolve([]);
+                });
+            },
+            addUsedWord: function(gameId, word) {
+                if (!this.db) return Promise.resolve();
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('state', 'readwrite');
+                    const store = tx.objectStore('state');
+                    const key = `${gameId}_used`;
+                    const req = store.get(key);
+                    req.onsuccess = () => {
+                        const words = req.result ? req.result.words : [];
+                        words.push(word);
+                        store.put({ key, words });
+                        resolve();
+                    };
+                });
+            },
+            clearAllData: function() {
+                if (!this.db) return Promise.resolve();
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction(['scores', 'state'], 'readwrite');
+                    tx.objectStore('scores').clear();
+                    tx.objectStore('state').clear();
+                    tx.oncomplete = () => resolve();
+                });
+            }
+        };
+
+        // ==========================================
+        // 3. UI COMPONENTS
+        // ==========================================
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    window.lucide.createIcons({ icons: { [name]: window.lucide.icons[name] }, root: iconRef.current.parentNode });
+                }
+            }, [name]);
+            return <i ref={iconRef} data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        const Button = ({ onClick, children, variant = "primary", className = "", disabled=false }) => {
+            const baseStyle = "px-6 py-3 rounded-xl font-bold text-lg transition-transform active:scale-95 shadow-md flex items-center justify-center gap-2 no-tap-highlight select-none";
+            const variants = {
+                primary: "bg-indigo-600 text-white hover:bg-indigo-700",
+                success: "bg-teal-600 text-white hover:bg-teal-700",
+                danger: "bg-rose-500 text-white hover:bg-rose-600",
+                outline: "border-2 border-indigo-600 text-indigo-700 hover:bg-indigo-50"
+            };
+            return (
+                <button 
+                    onClick={onClick} 
+                    disabled={disabled}
+                    className={`${baseStyle} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        const formatTime = (seconds) => {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return m > 0 ? `${m}m ${s}s` : `${s}s`;
+        };
+
+        const TopBar = ({ title, onBack, score, highScore, time, bestTime, moves, bestMoves }) => (
+            <div className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10 rounded-b-2xl mb-4">
+                <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 text-gray-700">
+                    <Icon name="ArrowLeft" size={28} />
+                </button>
+                <h1 className="text-2xl font-extrabold text-indigo-900 tracking-tight">{title}</h1>
+                <div className="text-right">
+                    {score !== undefined && <div className="text-lg font-bold text-teal-600">Score: {score}</div>}
+                    {highScore !== undefined && <div className="text-sm font-semibold text-gray-500">Best: {highScore}</div>}
+                    {time !== undefined && <div className="text-lg font-bold text-teal-600">Time: {formatTime(time)}</div>}
+                    {bestTime !== undefined && bestTime !== null && <div className="text-sm font-semibold text-gray-500">Best: {formatTime(bestTime)}</div>}
+                    {moves !== undefined && <div className="text-lg font-bold text-blue-600">Moves: {moves}</div>}
+                    {bestMoves !== undefined && bestMoves !== null && <div className="text-sm font-semibold text-gray-500">Best: {bestMoves}</div>}
+                </div>
+            </div>
+        );
+
+        // ==========================================
+        // 4. MODULES
+        // ==========================================
+
+        // --- MODULE: WURDLE ---
+        const Wurdle = ({ onBack }) => {
+            const [solution, setSolution] = useState("");
+            const [guesses, setGuesses] = useState([]);
+            const [currentGuess, setCurrentGuess] = useState("");
+            const [gameStatus, setGameStatus] = useState("playing"); // playing, won, lost
+            const [highScore, setHighScore] = useState(0);
+            const [score, setScore] = useState(0);
+            const [message, setMessage] = useState("");
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                dbHelper.getHighScore('wurdle').then(setHighScore);
+                startNewGame();
+            }, []);
+
+            const startNewGame = async () => {
+                const usedWords = await dbHelper.getUsedWords('wurdle');
+                let availableWords = WORDS_5_LETTER.filter(w => !usedWords.includes(w));
+                
+                // Reset if we somehow run out of 5 letter words
+                if (availableWords.length === 0) {
+                    availableWords = WORDS_5_LETTER;
+                }
+                
+                const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+                setSolution(randomWord.toUpperCase());
+                setGuesses([]);
+                setCurrentGuess("");
+                setGameStatus("playing");
+                setMessage("");
+                setTimeout(() => inputRef.current?.focus(), 100);
+            };
+
+            const processGuess = (guess) => {
+                const newGuesses = [...guesses, guess];
+                setGuesses(newGuesses);
+                setCurrentGuess("");
+                
+                if (guess === solution) {
+                    setGameStatus("won");
+                    const newScore = score + (7 - newGuesses.length) * 10;
+                    setScore(newScore);
+                    dbHelper.saveScore('wurdle', newScore);
+                    dbHelper.addUsedWord('wurdle', solution.toLowerCase());
+                    setMessage("Brilliant!");
+                } else if (newGuesses.length >= 6) {
+                    setGameStatus("lost");
+                    setMessage(solution);
+                    setScore(0);
+                }
+            };
+
+            const handleInputChange = (e) => {
+                if (gameStatus !== "playing") return;
+                const val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+                
+                if (val.length < 5) {
+                    setCurrentGuess(val);
+                } else if (val.length === 5) {
+                    // Auto-submit instantly when 5 letters are entered
+                    processGuess(val);
+                }
+            };
+
+            const getLetterStyle = (letter, index, guess) => {
+                if (!guess) return "bg-white border-2 border-gray-300 text-gray-800";
+                
+                // Logic for Wordle coloring
+                const solArray = solution.split('');
+                const guessArray = guess.split('');
+                
+                if (guessArray[index] === solArray[index]) return "bg-teal-500 border-teal-500 text-white";
+                
+                if (solArray.includes(guessArray[index])) {
+                    // Check for duplicates issue (simplified for readability)
+                    return "bg-amber-400 border-amber-400 text-white";
+                }
+                
+                return "bg-gray-400 border-gray-400 text-white";
+            };
+
+            const rows = Array(6).fill(null);
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-2xl mx-auto w-full pb-8">
+                    <TopBar title="Wurdle" onBack={onBack} score={score} highScore={highScore} />
+                    
+                    <div className="text-center text-gray-700 font-extrabold text-2xl mt-2 mb-6">
+                        Guess the word
+                    </div>
+
+                    {message && (
+                        <div className="text-center mb-4">
+                            <span className="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-lg shadow-md animate-pulse">
+                                {message}
+                            </span>
+                        </div>
+                    )}
+
+                    <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 w-full px-4">
+                        {/* Legend */}
+                        <div className="flex sm:flex-col justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-bold text-gray-600 sm:w-32 order-2 sm:order-1 mt-6 sm:mt-0 flex-shrink-0">
+                            <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-teal-500 rounded border border-teal-600 flex-shrink-0"></div> Correct</div>
+                            <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-amber-400 rounded border border-amber-500 flex-shrink-0"></div> Wrong Place</div>
+                            <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-400 rounded border border-gray-500 flex-shrink-0"></div> Incorrect</div>
+                        </div>
+
+                        {/* Board */}
+                        <div 
+                            className="relative flex flex-col gap-2 cursor-text order-1 sm:order-2 flex-shrink-0"
+                            onClick={() => inputRef.current?.focus()}
+                        >
+                            {gameStatus === "playing" && (
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={currentGuess}
+                                    autoFocus
+                                    className="absolute opacity-0 w-full h-full inset-0 z-10 cursor-text"
+                                    onChange={handleInputChange}
+                                    aria-label="Hidden input for mobile keyboard"
+                                />
+                            )}
+
+                            {rows.map((_, i) => {
+                                const guess = guesses[i] || (i === guesses.length ? currentGuess : "");
+                                return (
+                                    <div key={i} className="flex gap-2">
+                                        {Array(5).fill(null).map((_, j) => {
+                                            const letter = guess[j] || "";
+                                            const isSubmitted = i < guesses.length;
+                                            const style = isSubmitted 
+                                                ? getLetterStyle(letter, j, guess) 
+                                                : (letter ? "border-2 border-gray-600 text-gray-900 bg-white" : "border-2 border-gray-300 text-gray-900 bg-gray-50");
+                                            
+                                            return (
+                                                <div key={j} className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center text-2xl sm:text-3xl font-extrabold uppercase rounded-lg ${style} transition-all duration-300`}>
+                                                    {letter}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Spacer to perfectly center the board on desktop */}
+                        <div className="hidden sm:block w-32 order-3 flex-shrink-0"></div>
+                    </div>
+
+                    {gameStatus !== "playing" && (
+                        <div className="flex justify-center my-6">
+                            <Button onClick={startNewGame} variant="success">Play Again</Button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MODULE: WORD SEARCH ---
+        const WordSearch = ({ onBack }) => {
+            const GRID_SIZE = 10;
+            const [grid, setGrid] = useState([]);
+            const [wordsToFind, setWordsToFind] = useState([]);
+            const [foundWords, setFoundWords] = useState([]);
+            const [foundTiles, setFoundTiles] = useState([]);
+            
+            // Interaction state for dragging
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragStart, setDragStart] = useState(null);
+            const [dragCurrent, setDragCurrent] = useState(null);
+            
+            const [score, setScore] = useState(0);
+            const [highScore, setHighScore] = useState(0);
+            const [won, setWon] = useState(false);
+
+            useEffect(() => {
+                dbHelper.getHighScore('wordsearch').then(setHighScore);
+                generateGame();
+            }, []);
+
+            const generateGame = async () => {
+                const usedWords = await dbHelper.getUsedWords('wordsearch');
+                let availableWords = ALL_WORDS.filter(w => w.length >= 4 && w.length <= 8 && !usedWords.includes(w));
+                if (availableWords.length < 5) availableWords = ALL_WORDS.filter(w => w.length >= 4 && w.length <= 8);
+
+                // Select 5 random words
+                const selected = [];
+                for(let i=0; i<5; i++) {
+                    const w = availableWords.splice(Math.floor(Math.random() * availableWords.length), 1)[0];
+                    if(w) selected.push(w.toUpperCase());
+                }
+
+                // Initialize empty grid
+                let newGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
+                
+                // Directions: right, down, diagonal-down-right
+                const dirs = [[0,1], [1,0], [1,1]];
+
+                // Place words
+                selected.forEach(word => {
+                    let placed = false;
+                    let attempts = 0;
+                    while (!placed && attempts < 100) {
+                        const dir = dirs[Math.floor(Math.random() * dirs.length)];
+                        const row = Math.floor(Math.random() * GRID_SIZE);
+                        const col = Math.floor(Math.random() * GRID_SIZE);
+                        
+                        let canPlace = true;
+                        for (let i = 0; i < word.length; i++) {
+                            const r = row + (dir[0] * i);
+                            const c = col + (dir[1] * i);
+                            if (r >= GRID_SIZE || c >= GRID_SIZE || (newGrid[r][c] !== '' && newGrid[r][c] !== word[i])) {
+                                canPlace = false;
+                                break;
+                            }
+                        }
+
+                        if (canPlace) {
+                            for (let i = 0; i < word.length; i++) {
+                                newGrid[row + (dir[0] * i)][col + (dir[1] * i)] = word[i];
+                            }
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                });
+
+                // Fill rest with random letters
+                const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                for (let r=0; r<GRID_SIZE; r++) {
+                    for (let c=0; c<GRID_SIZE; c++) {
+                        if (newGrid[r][c] === '') {
+                            newGrid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+                        }
+                    }
+                }
+
+                setGrid(newGrid);
+                setWordsToFind(selected);
+                setFoundWords([]);
+                setFoundTiles([]);
+                setIsDragging(false);
+                setDragStart(null);
+                setDragCurrent(null);
+                setWon(false);
+            };
+
+            const handlePointerDown = (r, c) => {
+                if (won) return;
+                setIsDragging(true);
+                setDragStart({r, c});
+                setDragCurrent({r, c});
+            };
+
+            const handlePointerMove = (e, r, c) => {
+                if (!isDragging || won) return;
+                setDragCurrent({r, c});
+            };
+
+            const handleTouchMove = (e) => {
+                if (!isDragging || won) return;
+                const touch = e.touches[0];
+                const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (elem && elem.dataset.r && elem.dataset.c) {
+                    setDragCurrent({
+                        r: parseInt(elem.dataset.r), 
+                        c: parseInt(elem.dataset.c)
+                    });
+                }
+            };
+
+            const handlePointerUp = () => {
+                if (!isDragging || !dragStart || !dragCurrent) {
+                    setIsDragging(false);
+                    return;
+                }
+                
+                const start = dragStart;
+                const end = dragCurrent;
+                
+                const dr = end.r - start.r;
+                const dc = end.c - start.c;
+                
+                if (dr !== 0 || dc !== 0) {
+                    const isStraightLine = (dr === 0) || (dc === 0) || (Math.abs(dr) === Math.abs(dc));
+                    
+                    if (isStraightLine) {
+                        const steps = Math.max(Math.abs(dr), Math.abs(dc));
+                        const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+                        const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+                        
+                        let wordFormed = "";
+                        let path = [];
+                        for (let i = 0; i <= steps; i++) {
+                            const curR = start.r + (stepR * i);
+                            const curC = start.c + (stepC * i);
+                            wordFormed += grid[curR][curC];
+                            path.push({r: curR, c: curC});
+                        }
+                        
+                        let wordFormedRev = wordFormed.split('').reverse().join('');
+
+                        if (wordsToFind.includes(wordFormed) && !foundWords.includes(wordFormed)) {
+                            handleWordFound(wordFormed, path);
+                        } else if (wordsToFind.includes(wordFormedRev) && !foundWords.includes(wordFormedRev)) {
+                            handleWordFound(wordFormedRev, path);
+                        }
+                    }
+                }
+                
+                setIsDragging(false);
+                setDragStart(null);
+                setDragCurrent(null);
+            };
+
+            // Global pointer up to catch releases outside the grid
+            useEffect(() => {
+                const handleGlobalUp = () => { if (isDragging) handlePointerUp(); };
+                window.addEventListener('mouseup', handleGlobalUp);
+                window.addEventListener('touchend', handleGlobalUp);
+                return () => {
+                    window.removeEventListener('mouseup', handleGlobalUp);
+                    window.removeEventListener('touchend', handleGlobalUp);
+                };
+            }, [isDragging, dragStart, dragCurrent]);
+
+            const getHighlightedTiles = () => {
+                if (!isDragging || !dragStart || !dragCurrent) return [];
+                const start = dragStart;
+                const end = dragCurrent;
+                const dr = end.r - start.r;
+                const dc = end.c - start.c;
+                const isStraightLine = (dr === 0) || (dc === 0) || (Math.abs(dr) === Math.abs(dc));
+                
+                if (!isStraightLine) return [{r: start.r, c: start.c}];
+
+                const steps = Math.max(Math.abs(dr), Math.abs(dc));
+                const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+                const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+                
+                let highlighted = [];
+                for (let i = 0; i <= steps; i++) {
+                    highlighted.push({ r: start.r + (stepR * i), c: start.c + (stepC * i) });
+                }
+                return highlighted;
+            };
+
+            const handleWordFound = (word, path) => {
+                const newFound = [...foundWords, word];
+                setFoundWords(newFound);
+                setFoundTiles(prev => [...prev, ...path]);
+                setScore(s => s + word.length * 10);
+                
+                if (newFound.length === wordsToFind.length) {
+                    setWon(true);
+                    const finalScore = score + (word.length * 10) + 100; // bonus
+                    dbHelper.saveScore('wordsearch', finalScore);
+                    setScore(finalScore);
+                    newFound.forEach(w => dbHelper.addUsedWord('wordsearch', w.toLowerCase()));
+                }
+            };
+
+            const highlightedPath = getHighlightedTiles();
+            const isTileHighlighted = (r, c) => highlightedPath.some(t => t.r === r && t.c === c);
+            const isTileFound = (r, c) => foundTiles.some(t => t.r === r && t.c === c);
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full touch-none select-none">
+                    <TopBar title="Word Search" onBack={onBack} score={score} highScore={highScore} />
+                    
+                    <div className="p-4 bg-white mx-4 rounded-xl shadow-sm mb-4">
+                        <p className="text-gray-600 text-sm mb-2 font-medium">Find these words. Drag your finger across the letters.</p>
+                        <div className="flex flex-wrap gap-2">
+                            {wordsToFind.map(w => (
+                                <span key={w} className={`px-3 py-1 rounded-full text-sm font-bold ${foundWords.includes(w) ? 'bg-teal-100 text-teal-700 line-through' : 'bg-gray-100 text-gray-800'}`}>
+                                    {w}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex items-center justify-center p-2">
+                        <div 
+                            className="grid bg-indigo-900 p-2 rounded-xl gap-1 touch-none" 
+                            style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
+                            onTouchMove={handleTouchMove}
+                        >
+                            {grid.map((row, r) => (
+                                row.map((letter, c) => {
+                                    const highlighted = isTileHighlighted(r, c);
+                                    const found = isTileFound(r, c);
+                                    return (
+                                        <div 
+                                            key={`${r}-${c}`}
+                                            data-r={r}
+                                            data-c={c}
+                                            onPointerDown={() => handlePointerDown(r, c)}
+                                            onPointerEnter={(e) => handlePointerMove(e, r, c)}
+                                            className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl font-bold rounded cursor-pointer no-tap-highlight transition-colors duration-200
+                                                ${highlighted ? 'bg-amber-400 text-white shadow-inner' : 
+                                                  found ? 'bg-teal-200 text-teal-800' : 
+                                                  'bg-white text-indigo-900 hover:bg-indigo-50'}`}
+                                        >
+                                            {letter}
+                                        </div>
+                                    )
+                                })
+                            ))}
+                        </div>
+                    </div>
+
+                    {won && (
+                        <div className="p-6 text-center animate-pulse">
+                            <h2 className="text-2xl font-black text-teal-600 mb-4">Excellent Job!</h2>
+                            <Button onClick={generateGame} variant="primary" className="mx-auto">Play Next Puzzle</Button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MODULE: WORD TOWER ---
+        const WordTower = ({ onBack }) => {
+            const COLS = 7;
+            const ROWS = 9;
+            const [grid, setGrid] = useState([]);
+            const [selectedPath, setSelectedPath] = useState([]); // array of {r, c}
+            const [isDragging, setIsDragging] = useState(false);
+            const [score, setScore] = useState(0);
+            const [highScore, setHighScore] = useState(0);
+            const [message, setMessage] = useState("");
+
+            useEffect(() => {
+                dbHelper.getHighScore('wordtower').then(setHighScore);
+                generateGrid();
+            }, []);
+
+            const generateGrid = () => {
+                // To ensure playable boards, we mix common letters heavily
+                const vowels = "AEIOU";
+                const commonCons = "RSTLNCDG";
+                const allAlpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                
+                let newGrid = [];
+                for(let r=0; r<ROWS; r++){
+                    let row = [];
+                    for(let c=0; c<COLS; c++) {
+                        const rand = Math.random();
+                        let letter = "";
+                        if (rand < 0.4) letter = vowels[Math.floor(Math.random()*vowels.length)];
+                        else if (rand < 0.8) letter = commonCons[Math.floor(Math.random()*commonCons.length)];
+                        else letter = allAlpha[Math.floor(Math.random()*allAlpha.length)];
+                        
+                        row.push({ id: `${r}-${c}-${Date.now()}`, letter });
+                    }
+                    newGrid.push(row);
+                }
+                setGrid(newGrid);
+                setSelectedPath([]);
+                setIsDragging(false);
+                setScore(0);
+            };
+
+            const handlePointerDown = (r, c) => {
+                if (!grid[r][c]) return;
+                setIsDragging(true);
+                setSelectedPath([{r, c}]);
+            };
+
+            const handlePointerMove = (r, c) => {
+                if (!isDragging || !grid[r][c]) return;
+                
+                const existingIndex = selectedPath.findIndex(p => p.r === r && p.c === c);
+                
+                if (existingIndex !== -1) {
+                    // Truncate path to allow backtracking
+                    setSelectedPath(selectedPath.slice(0, existingIndex + 1));
+                    return;
+                }
+
+                // Check adjacency
+                const last = selectedPath[selectedPath.length - 1];
+                const rDiff = Math.abs(last.r - r);
+                const cDiff = Math.abs(last.c - c);
+                
+                if (rDiff <= 1 && cDiff <= 1 && !(rDiff === 0 && cDiff === 0)) {
+                    setSelectedPath(prev => [...prev, {r, c}]);
+                }
+            };
+
+            const handleTouchMove = (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (elem && elem.dataset.r && elem.dataset.c) {
+                    const r = parseInt(elem.dataset.r);
+                    const c = parseInt(elem.dataset.c);
+                    handlePointerMove(r, c);
+                }
+            };
+
+            const handlePointerUp = () => {
+                if (!isDragging) return;
+                setIsDragging(false);
+                
+                if (selectedPath.length >= 3) {
+                    submitWord(selectedPath);
+                } else {
+                    setSelectedPath([]);
+                }
+            };
+
+            useEffect(() => {
+                const handleGlobalUp = () => { if (isDragging) handlePointerUp(); };
+                window.addEventListener('mouseup', handleGlobalUp);
+                window.addEventListener('touchend', handleGlobalUp);
+                return () => {
+                    window.removeEventListener('mouseup', handleGlobalUp);
+                    window.removeEventListener('touchend', handleGlobalUp);
+                };
+            }, [isDragging, selectedPath]);
+
+            const submitWord = (path) => {
+                const word = path.map(p => grid[p.r][p.c].letter).join('');
+                
+                if (VALIDATION_DICTIONARY.has(word.toLowerCase())) {
+                    // Valid Word!
+                    let pts = word.length * 10 * (word.length - 2); // scaling points
+                    const newScore = score + pts;
+                    setScore(newScore);
+                    dbHelper.saveScore('wordtower', newScore);
+                    dbHelper.addUsedWord('wordtower', word.toLowerCase());
+                    
+                    showMessage(`Awesome! +${pts} pts`);
+                    
+                    // Remove tiles and apply gravity
+                    let newGrid = JSON.parse(JSON.stringify(grid)); // deep copy
+                    path.forEach(p => {
+                        newGrid[p.r][p.c] = null;
+                    });
+
+                    // Gravity: bottom up
+                    for (let c = 0; c < COLS; c++) {
+                        let emptySpaces = 0;
+                        for (let r = ROWS - 1; r >= 0; r--) {
+                            if (newGrid[r][c] === null) {
+                                emptySpaces++;
+                            } else if (emptySpaces > 0) {
+                                // Fall down
+                                newGrid[r + emptySpaces][c] = newGrid[r][c];
+                                newGrid[r][c] = null;
+                            }
+                        }
+                    }
+
+                    setGrid(newGrid);
+                    setSelectedPath([]);
+                } else {
+                    showMessage("Not a valid word.");
+                    setSelectedPath([]);
+                }
+            };
+
+            const showMessage = (msg) => {
+                setMessage(msg);
+                setTimeout(() => setMessage(""), 2000);
+            };
+
+            const isSelected = (r, c) => selectedPath.some(p => p.r === r && p.c === c);
+            const currentWord = selectedPath.map(p => grid[p.r][p.c]?.letter || "").join('');
+            
+            // Check if the board is completely empty
+            const isBoardEmpty = grid.length > 0 && grid.every(row => row.every(cell => cell === null));
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-6 touch-none select-none">
+                    <TopBar title="Word Tower" onBack={onBack} score={score} highScore={highScore} />
+
+                    <div className="px-4 mb-2 flex justify-between items-end h-16">
+                        <div className="text-3xl font-black text-indigo-800 tracking-widest uppercase flex-1 text-center bg-indigo-50 rounded-xl py-2 shadow-inner border border-indigo-100 transition-all">
+                            {currentWord || <span className="text-gray-300">_ _ _</span>}
+                        </div>
+                    </div>
+
+                    {message && <div className="text-center text-rose-600 font-bold h-6">{message}</div>}
+                    {!message && !isBoardEmpty && <div className="text-center text-gray-500 text-sm h-6">Drag to connect adjacent letters</div>}
+
+                    {isBoardEmpty ? (
+                        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-pulse mt-8">
+                            <h2 className="text-3xl font-black text-teal-600 mb-6">Board Cleared!</h2>
+                            <Button onClick={generateGrid} variant="primary">Play Next Board</Button>
+                        </div>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center p-4">
+                            <div 
+                                className="grid gap-1 bg-gray-200 p-2 rounded-xl touch-none mb-6" 
+                                style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
+                                onTouchMove={handleTouchMove}
+                            >
+                                {grid.map((row, r) => (
+                                    row.map((cell, c) => {
+                                        if (!cell) {
+                                            return <div key={`empty-${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent"></div>;
+                                        }
+                                        const selected = isSelected(r, c);
+                                        // Use a stable key based on the cell ID to allow react animations when falling
+                                        return (
+                                            <div 
+                                                key={cell.id}
+                                                data-r={r}
+                                                data-c={c}
+                                                onPointerDown={() => handlePointerDown(r, c)}
+                                                onPointerEnter={() => handlePointerMove(r, c)}
+                                                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded-lg cursor-pointer no-tap-highlight transition-all duration-200 shadow-sm
+                                                    ${selected ? 'bg-teal-500 text-white transform scale-95' : 'bg-white text-gray-800 hover:bg-teal-50'}`}
+                                            >
+                                                {cell.letter}
+                                            </div>
+                                        )
+                                    })
+                                ))}
+                            </div>
+                            
+                            {/* Manual restart button if the user gets stuck without any valid words left */}
+                            <button onClick={generateGrid} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                                <Icon name="RefreshCw" size={16} /> New Board
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MODULE: JIGSAW ---
+        const JigsawPuzzle = ({ onBack }) => {
+            const [location, setLocation] = useState(null);
+            const [board, setBoard] = useState(Array(9).fill(null));
+            const [pool, setPool] = useState([]);
+            const [selected, setSelected] = useState(null); // { type: 'board'|'pool', index }
+            const [time, setTime] = useState(0);
+            const [bestTime, setBestTime] = useState(null);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [won, setWon] = useState(false);
+
+            useEffect(() => {
+                dbHelper.getBestTime('jigsaw').then(setBestTime);
+                startNewGame();
+            }, []);
+
+            useEffect(() => {
+                let timer;
+                if (isPlaying && !won) {
+                    timer = setInterval(() => setTime(t => t + 1), 1000);
+                }
+                return () => clearInterval(timer);
+            }, [isPlaying, won]);
+
+            const startNewGame = (resetTime = true) => {
+                // Generate a random seed on the fly to fetch a completely new, unique image every single time!
+                const randomSeed = Math.floor(Math.random() * 100000);
+                
+                setLocation({
+                    name: `Mystery Scene #${randomSeed}`,
+                    url: `https://picsum.photos/seed/${randomSeed}/600/600`
+                });
+                
+                // Shuffle pieces 0-8
+                let pieces = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+                for (let i = pieces.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+                }
+                
+                setPool(pieces);
+                setBoard(Array(9).fill(null));
+                setSelected(null);
+                if (resetTime) {
+                    setTime(0);
+                }
+                setIsPlaying(true);
+                setWon(false);
+            };
+
+            const handleSlotClick = (type, index) => {
+                if (won) return;
+
+                const clickedPieceId = type === 'board' ? board[index] : pool[index];
+
+                // Prevent interaction with correctly placed (locked) pieces on the board
+                const isLocked = type === 'board' && clickedPieceId === index;
+                if (isLocked) return;
+
+                if (!selected) {
+                    // Select piece if it exists
+                    if (clickedPieceId !== null) {
+                        setSelected({ type, index });
+                    }
+                } else {
+                    // If clicked the exact same piece, deselect
+                    if (selected.type === type && selected.index === index) {
+                        setSelected(null);
+                        return;
+                    }
+
+                    // Swap or Move logic
+                    let newBoard = [...board];
+                    let newPool = [...pool];
+
+                    const sourcePieceId = selected.type === 'board' ? newBoard[selected.index] : newPool[selected.index];
+                    const targetPieceId = type === 'board' ? newBoard[index] : newPool[index];
+
+                    if (selected.type === 'board') newBoard[selected.index] = targetPieceId;
+                    else newPool[selected.index] = targetPieceId;
+
+                    if (type === 'board') newBoard[index] = sourcePieceId;
+                    else newPool[index] = sourcePieceId;
+
+                    setBoard(newBoard);
+                    setPool(newPool);
+                    setSelected(null);
+
+                    // Check Win Condition
+                    if (newBoard.every((p, i) => p === i)) {
+                        setWon(true);
+                        setIsPlaying(false);
+                        dbHelper.saveTime('jigsaw', time);
+                        if (bestTime === null || time < bestTime) {
+                            setBestTime(time);
+                        }
+                    }
+                }
+            };
+
+            const renderPiece = (pieceId, isSelected, isLocked) => {
+                if (pieceId === null) return null;
+                const row = Math.floor(pieceId / 3);
+                const col = pieceId % 3;
+                return (
+                    <div 
+                        className={`w-full h-full rounded transition-transform relative overflow-hidden ${isSelected ? 'ring-4 ring-amber-500 scale-95 z-20' : isLocked ? 'z-10' : 'hover:scale-105 shadow-sm'}`}
+                    >
+                        <div className="w-full h-full bg-gray-100" style={{
+                            backgroundImage: `url(${location.url})`,
+                            backgroundSize: '300% 300%',
+                            backgroundPosition: `${col * 50}% ${row * 50}%`,
+                        }}></div>
+                        
+                        {isLocked && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-teal-500/40 ring-4 ring-teal-500 ring-inset">
+                                <Icon name="Check" size={40} className="text-white drop-shadow-lg opacity-100" />
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            if (!location) return null;
+
+            const allPiecesOnBoard = pool.every(p => p === null);
+            const isWrong = allPiecesOnBoard && !won;
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
+                    <TopBar title="Mystery Jigsaw" onBack={onBack} time={time} bestTime={bestTime} />
+
+                    <div className="flex flex-col items-center flex-1 px-4 gap-4">
+                        {/* Reference Image & Instructions */}
+                        <div className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100 w-full max-w-[320px]">
+                            <img src={location.url} alt={location.name} className="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-200 bg-gray-100" />
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-800 leading-tight flex items-center gap-2">
+                                    Match the Scene
+                                    {!won && (
+                                        <button 
+                                            onClick={() => startNewGame(false)} 
+                                            className="text-indigo-500 hover:text-indigo-700 active:scale-95 transition-all p-1 bg-indigo-50 rounded-full" 
+                                            title="Get a new image (keeps timer running)"
+                                        >
+                                            <Icon name="RefreshCw" size={14} />
+                                        </button>
+                                    )}
+                                </h2>
+                                <p className="text-xs text-gray-500 mt-1 font-medium">Rebuild the image above. Correct pieces will lock into place.</p>
+                            </div>
+                        </div>
+
+                        {/* Error Message if stuck */}
+                        {isWrong && (
+                            <div className="text-amber-700 font-bold text-sm bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 animate-pulse text-center w-full max-w-[320px]">
+                                Pieces placed, but some are wrong. Keep swapping!
+                            </div>
+                        )}
+
+                        {/* Board */}
+                        <div 
+                            className="w-full max-w-[320px] aspect-square rounded-xl bg-gray-200 shadow-inner p-1 grid grid-cols-3 grid-rows-3 gap-1 relative overflow-hidden"
+                        >
+                            {board.map((pieceId, i) => {
+                                const isSelected = selected?.type === 'board' && selected?.index === i;
+                                const isLocked = pieceId === i;
+                                return (
+                                    <div 
+                                        key={`board-${i}`} 
+                                        className={`relative z-10 bg-white/40 rounded cursor-pointer ${!won && pieceId === null && selected ? 'ring-2 ring-indigo-300 ring-inset' : ''}`}
+                                        onClick={() => handleSlotClick('board', i)}
+                                    >
+                                        {renderPiece(pieceId, isSelected, isLocked)}
+                                    </div>
+                                )
+                            })}
+
+                            {/* Win overlay to hide gaps and show full image smoothly */}
+                            {won && (
+                                <div 
+                                    className="absolute inset-0 z-20 tile-pop rounded-xl"
+                                    style={{ backgroundImage: `url(${location.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                ></div>
+                            )}
+                        </div>
+
+                        {/* Pool / Tray */}
+                        {!won ? (
+                            <div className="w-full max-w-[320px] bg-white rounded-xl p-3 shadow-sm border border-gray-100 min-h-[120px]">
+                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Pieces Tray</div>
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    {pool.map((pieceId, i) => {
+                                        if (pieceId === null) return null; // Slot empty in pool
+                                        const isSelected = selected?.type === 'pool' && selected?.index === i;
+                                        return (
+                                            <div 
+                                                key={`pool-${pieceId}`}
+                                                className="w-20 h-20 cursor-pointer flex-shrink-0"
+                                                onClick={() => handleSlotClick('pool', i)}
+                                            >
+                                                {renderPiece(pieceId, isSelected, false)}
+                                            </div>
+                                        );
+                                    })}
+                                    {pool.every(p => p === null) && !isWrong && (
+                                        <div className="w-full text-center text-gray-400 font-medium py-4">All pieces placed!</div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center animate-pulse mt-4">
+                                <h2 className="text-3xl font-black text-amber-500 mb-6">Puzzle Solved!</h2>
+                                <Button onClick={startNewGame} variant="primary" className="mx-auto">Play Next Puzzle</Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MODULE: MEMORY MATCH ---
+        const MemoryMatch = ({ onBack }) => {
+            const ICONS = ['Sun', 'Moon', 'Star', 'Heart', 'Cloud', 'Music', 'Coffee', 'Bird'];
+            const [cards, setCards] = useState([]);
+            const [flipped, setFlipped] = useState([]);
+            const [matched, setMatched] = useState(new Set());
+            const [moves, setMoves] = useState(0);
+            const [bestMoves, setBestMoves] = useState(null);
+            const [isLocked, setIsLocked] = useState(false);
+            const [won, setWon] = useState(false);
+
+            useEffect(() => {
+                dbHelper.getLeastMoves('memorymatch').then(setBestMoves);
+                startNewGame();
+            }, []);
+
+            const startNewGame = () => {
+                const shuffled = [...ICONS, ...ICONS]
+                    .sort(() => Math.random() - 0.5)
+                    .map((icon, id) => ({ id, icon }));
+                setCards(shuffled);
+                setFlipped([]);
+                setMatched(new Set());
+                setMoves(0);
+                setWon(false);
+                setIsLocked(false);
+            };
+
+            const handleCardClick = (index) => {
+                if (isLocked || flipped.includes(index) || matched.has(index)) return;
+
+                const newFlipped = [...flipped, index];
+                setFlipped(newFlipped);
+
+                if (newFlipped.length === 2) {
+                    setIsLocked(true);
+                    setMoves(m => m + 1);
+                    
+                    const [first, second] = newFlipped;
+                    if (cards[first].icon === cards[second].icon) {
+                        setMatched(prev => {
+                            const next = new Set(prev).add(first).add(second);
+                            if (next.size === cards.length) {
+                                setWon(true);
+                                if (bestMoves === null || moves + 1 < bestMoves) {
+                                    setBestMoves(moves + 1);
+                                    dbHelper.saveLeastMoves('memorymatch', moves + 1);
+                                }
+                            }
+                            return next;
+                        });
+                        setFlipped([]);
+                        setIsLocked(false);
+                    } else {
+                        // 1.5 seconds gives older adults ample time to register and encode the cards
+                        setTimeout(() => {
+                            setFlipped([]);
+                            setIsLocked(false);
+                        }, 1500); 
+                    }
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
+                    <TopBar title="Memory Match" onBack={onBack} moves={moves} bestMoves={bestMoves} />
+
+                    <div className="text-center px-4 mb-6">
+                        <h2 className="text-xl font-bold text-gray-800">Find the Pairs</h2>
+                        <p className="text-sm text-gray-500 mt-1">Tap two cards to reveal them. Match all pairs in the fewest moves.</p>
+                    </div>
+
+                    <div className="flex-1 flex flex-col items-center justify-start px-4">
+                        <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-[340px] w-full bg-blue-50 p-4 rounded-xl shadow-inner border border-blue-100">
+                            {cards.map((card, i) => {
+                                const isFlipped = flipped.includes(i);
+                                const isMatched = matched.has(i);
+                                const isVisible = isFlipped || isMatched;
+
+                                return (
+                                    <div 
+                                        key={card.id}
+                                        onClick={() => handleCardClick(i)}
+                                        className="aspect-square rounded-xl cursor-pointer relative"
+                                    >
+                                        {/* Back of Card */}
+                                        <div className={`absolute inset-0 bg-indigo-500 hover:bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm transition-opacity duration-300 z-10 ${isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                                            <Icon name="Brain" size={28} className="text-indigo-300 opacity-50" />
+                                        </div>
+
+                                        {/* Front of Card */}
+                                        <div className={`absolute inset-0 bg-white rounded-xl flex items-center justify-center border-2 shadow-sm transition-opacity duration-300 z-0 ${isVisible ? 'opacity-100 border-blue-400' : 'opacity-0 border-transparent'} ${isMatched ? 'border-green-400 bg-green-50 opacity-60' : ''}`}>
+                                            <Icon name={card.icon} size={36} className={isMatched ? 'text-green-500' : 'text-blue-600'} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {won && (
+                            <div className="text-center animate-pulse mt-8">
+                                <h2 className="text-3xl font-black text-blue-600 mb-6">Excellent Memory!</h2>
+                                <Button onClick={startNewGame} variant="primary" className="mx-auto">Play Again</Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MODULE: ABOUT ---
+        const About = ({ onBack }) => {
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8">
+                    <TopBar title="About" onBack={onBack} />
+                    <div className="px-4 mt-2">
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <p className="text-lg text-gray-800 font-medium mb-8 leading-relaxed">
+                                This was an application designed by <span className="font-bold text-indigo-700">Jim Liddle</span> to help his parents keep cognitively fit.
+                            </p>
+                            
+                            <h2 className="text-xl font-black text-indigo-900 mb-6">The app was designed with 5 exercises:</h2>
+                            
+                            <div className="space-y-6">
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-teal-600"><Icon name="BrainCircuit" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Wurdle</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Enhances deductive reasoning and working memory as you logically eliminate letters to deduce the hidden word.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-indigo-600"><Icon name="Search" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Word Search</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Improves visual scanning, pattern recognition, and sustained attention by training the brain to filter out visual noise.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-rose-600"><Icon name="Blocks" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Word Tower</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Exercises lexical access and strategic planning, challenging you to construct words while managing spatial constraints.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-amber-600"><Icon name="Puzzle" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Mystery Jigsaw</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Boosts visual-spatial processing and problem-solving skills by requiring the mind to rotate and match complex visual fragments.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-blue-600"><Icon name="LayoutGrid" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Memory Match</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Directly targets short-term memory encoding and retrieval, along with sustained concentration and visual recognition.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 5. MAIN MENU & APP ROUTING
+        // ==========================================
+        const GAMES = [
+            { id: 'wurdle', name: 'Wurdle', desc: 'Guess the 5-letter word in 6 tries.', icon: 'BrainCircuit', color: 'bg-teal-100 text-teal-800', type: 'score' },
+            { id: 'wordsearch', name: 'Word Search', desc: 'Find hidden words in the grid.', icon: 'Search', color: 'bg-indigo-100 text-indigo-800', type: 'score' },
+            { id: 'wordtower', name: 'Word Tower', desc: 'Connect adjacent letters to clear blocks.', icon: 'Blocks', color: 'bg-rose-100 text-rose-800', type: 'score' },
+            { id: 'jigsaw', name: 'Mystery Jigsaw', desc: 'Piece together a beautiful random scene.', icon: 'Puzzle', color: 'bg-amber-100 text-amber-800', type: 'time' },
+            { id: 'memorymatch', name: 'Memory Match', desc: 'Find the matching pairs with fewest moves.', icon: 'LayoutGrid', color: 'bg-blue-100 text-blue-800', type: 'moves' },
+        ];
+
+        const MainMenu = ({ onSelectGame }) => {
+            const [scores, setScores] = useState({});
+            const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+            const loadScores = async () => {
+                let s = {};
+                for (let g of GAMES) {
+                    if (g.type === 'score') {
+                        s[g.id] = await dbHelper.getHighScore(g.id);
+                    } else if (g.type === 'time') {
+                        const bt = await dbHelper.getBestTime(g.id);
+                        s[g.id] = bt !== null ? formatTime(bt) : '-';
+                    } else if (g.type === 'moves') {
+                        const bm = await dbHelper.getLeastMoves(g.id);
+                        s[g.id] = bm !== null ? `${bm} moves` : '-';
+                    }
+                }
+                setScores(s);
+            };
+
+            useEffect(() => {
+                loadScores();
+            }, []);
+
+            const handleReset = async () => {
+                await dbHelper.clearAllData();
+                await loadScores();
+                setShowResetConfirm(false);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto p-6 pt-12">
+                    <div className="text-center mb-10">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-600 text-white shadow-lg mb-4">
+                            <Icon name="Activity" size={40} />
+                        </div>
+                        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Cognitive Agility</h1>
+                        <p className="text-lg text-gray-600 mt-2">Daily exercises to keep your mind sharp.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                        {GAMES.map(game => (
+                            <div 
+                                key={game.id}
+                                onClick={() => onSelectGame(game.id)}
+                                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer flex items-center gap-4 active:scale-95 transition-transform"
+                            >
+                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${game.color}`}>
+                                    <Icon name={game.icon} size={32} />
+                                </div>
+                                <div className="flex-1">
+                                    <h2 className="text-xl font-bold text-gray-900">{game.name}</h2>
+                                    <p className="text-sm text-gray-500 mt-1">{game.desc}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Best</div>
+                                    <div className="text-lg font-black text-indigo-600">{scores[game.id] || 0}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="mt-auto pt-8 flex flex-col items-center gap-4">
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => onSelectGame('about')} 
+                                className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <Icon name="Info" size={16} /> About this App
+                            </button>
+                            <button 
+                                onClick={() => setShowResetConfirm(true)} 
+                                className="text-sm font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <Icon name="Trash2" size={16} /> Reset Progress
+                            </button>
+                        </div>
+                        <div className="text-center text-sm text-gray-400 font-medium">
+                            Designed for mental fitness & cognitive agility.
+                        </div>
+                    </div>
+
+                    {showResetConfirm && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+                                <Icon name="AlertTriangle" size={48} className="mx-auto text-rose-500 mb-4" />
+                                <h3 className="text-2xl font-black text-gray-900 mb-2">Reset Progress?</h3>
+                                <p className="text-gray-600 mb-6 font-medium">This will permanently delete all your high scores and clear your played puzzle history. This cannot be undone.</p>
+                                <div className="flex gap-3 justify-center">
+                                    <Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">Cancel</Button>
+                                    <Button variant="danger" onClick={handleReset} className="flex-1">Reset</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [currentView, setCurrentView] = useState('menu');
+            const [dbReady, setDbReady] = useState(false);
+            const [isOffline, setIsOffline] = useState(false);
+
+            useEffect(() => {
+                dbHelper.init().then(() => {
+                    // Asynchronously load a massive 170k+ word Scrabble dictionary for extensive validation support
+                    fetch('https://raw.githubusercontent.com/redbo/scrabble/master/dictionary.txt')
+                        .then(res => {
+                            if (!res.ok) throw new Error("Network response failed");
+                            return res.text();
+                        })
+                        .then(text => {
+                            text.split('\n').forEach(w => {
+                                const clean = w.trim().toLowerCase();
+                                if (clean.length >= 3) VALIDATION_DICTIONARY.add(clean);
+                            });
+                            setDbReady(true);
+                        })
+                        .catch(e => {
+                            console.error("Failed to load dictionary:", e);
+                            setIsOffline(true);
+                        });
+                        
+                }).catch(e => {
+                    console.error("Database initialization failed:", e);
+                    setIsOffline(true);
+                });
+            }, []);
+
+            if (isOffline) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+                        <div className="bg-white p-8 rounded-2xl shadow-lg border border-rose-100 max-w-sm w-full">
+                            <Icon name="WifiOff" size={48} className="mx-auto text-rose-500 mb-4" />
+                            <h2 className="text-2xl font-black text-gray-900 mb-2">Are you online?</h2>
+                            <p className="text-gray-600 mb-6 font-medium">Unable to load module data. Please go online and refresh the app.</p>
+                            <Button onClick={() => window.location.reload()} variant="primary" className="mx-auto w-full">
+                                Refresh App
+                            </Button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!dbReady) {
+                return <div className="min-h-screen flex items-center justify-center text-indigo-600 font-bold text-xl animate-pulse">Loading modules...</div>;
+            }
+
+            return (
+                <div>
+                    {currentView === 'menu' && <MainMenu onSelectGame={setCurrentView} />}
+                    {currentView === 'about' && <About onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'wurdle' && <Wurdle onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'wordsearch' && <WordSearch onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'wordtower' && <WordTower onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'jigsaw' && <JigsawPuzzle onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'memorymatch' && <MemoryMatch onBack={() => setCurrentView('menu')} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
