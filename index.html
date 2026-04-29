@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#f0fdfa">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CogAgility">
+    
     <title>Cognitive Agility Suite</title>
     
     <!-- React & ReactDOM -->
@@ -17,6 +24,35 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Dynamic PWA Manifest Injection -->
+    <script>
+        (function() {
+            const manifest = {
+                name: "Cognitive Agility Suite",
+                short_name: "CogAgility",
+                start_url: window.location.href.split('?')[0],
+                display: "standalone",
+                background_color: "#f0fdfa",
+                theme_color: "#4f46e5",
+                icons: [{
+                    src: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%234f46e5' rx='112'/%3E%3Cpath d='M256 128a128 128 0 10128 128 128 128 0 00-128-128zm0 216a88 88 0 1188-88 88 88 0 01-88 88z' fill='%23fff'/%3E%3C/svg%3E",
+                    sizes: "512x512",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }, {
+                    src: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%234f46e5' rx='42'/%3E%3Cpath d='M96 48a48 48 0 1048 48 48 48 0 00-48-48zm0 81a33 33 0 1133-33 33 33 0 01-33 33z' fill='%23fff'/%3E%3C/svg%3E",
+                    sizes: "192x192",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }]
+            };
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+            document.head.appendChild(link);
+        })();
+    </script>
 
     <style>
         body {
@@ -49,7 +85,7 @@
         // ==========================================
         // 1. DATA: WORD LIST
         // ==========================================
-        // A curated list of words, heavy on 5-letter words for Wurdle, mixed with longer words for other games.
+        // A curated list of words, heavy on 5-letter words for Wordle, mixed with longer words for other games.
         // In a production environment with an external file, this could easily be 5,000+ words.
         const DICTIONARY_STRING = "apple alive adult about actor acute admit adopt adapt abuse alert alien alike allow alone along alter amaze angel anger angle angry apart apple apply arena argue arise armed armor array arrow asset audio audit avoid award aware badly baker bases basic basis beach beast begin belly below bench bingo birth black blame blind block blood board brain brand bread break brick bring broad brown brush build bunch buyer cabin cable camel catch cause chain chair chest chief child chill claim class clean clear click clock close coach coast count cover cream cross crowd crown curve cycle daily dance dawns delay depth digit dirty doing doubt dozen draft drain dream dress drill drink drive eager early earth eight elite empty enemy enjoy enter entry equal error event exact exist extra faded false fault fiber field fifth fifty fight final first fixed flame flash fleet floor fluid focus force frame frank front fruit fully funny giant glass globe going grace grand grant grass great green gross group guard guess guest guide habit happy heart heavy hello horse hotel house human ideal image index inner input issue joint judge juice labor large laser later laugh layer learn lease least leave legal level light limit lipid liver local logic loose lower lucky magic major maker match mayor meant metal might minor model money month moral motor mount mouse mouth movie music naked newly night noise north novel nurse occur ocean offer often order other ought paint panel paper party peace phase phone photo piece pilot pitch place plain plane plant plate point pound power press price pride prime print prior prize proof proud prove queen quick quiet quite radio raise range rapid ratio reach ready refer relax right river roman rough round royal rural scale scene scope score sense serve seven shape share sharp sheep sheet shift shirt shock short sight skill sleep small smart smile smith smoke solid solve sound south space speak speed spend split spoke sport staff stage stand start state steam steel stick still stock stone store storm story strip style sugar suite super sweet table taste teach theme thick thing think third those three throw tiger tight title toast today topic total touch tower track trade train treat trend trial trust truth uncle under union unity upset value video visit voice vowel waste watch water wheel where which white whole whose woman women words world worry worst would wound write wrong yield young youth active agility brain memory puzzle logic smart clever puzzle search words tower letter blocks logic puzzle search spell doe does dog dogs cat cats bat bats hat hats mat mats rat rats sat pat pats fat fats vat vats eat eats tea teas pea peas sea seas see sees bee bees fee fees tee tees toe toes hoe hoes roe roes woe woes ear ears era eras are area areas arm arms art arts ark arks ant ants and any all ask ass ate ave awe awl awn axe bad bag bah bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bit boa bob bog boo bop bow box boy bub bud bug bum bun bus but buy bye cab cad cam can cap car caw cay cob cod cog con coo cop cot cow cox coy coz cry cub cud cue cup cur cut dab dad dam dap daw day deb dee def del den dew dex did die dig dim din dip doc doe dog don dot dry dub dud due dug dun duo dye ear eat ebb eel egg ego eke elf elk elm emo emu end eng eon era erg err eta eve eye fab fad fag fan far fas fat fax fay fed fee fen fex fey fez fib fig fin fir fit fix fly fob foe fog foh fon fop for fox foy fro fry fub pug pub pun pup pur put pya pye pyx tab tag tam tap tar tas tat tau tav taw tax tea ted tee teg tel ten tet tew the thy tic tie tig tin tip tit toe tog tom ton too top tor tot tow toy try tub tug tui tun tup tut tux twa two tye udo ugh uke ump uns upo ups urb urn use uta vac van vat vau vav vaw vet vex via vie vig vim vis vow vox vug wab wad wae wag wan wap war was wat waw wax way web wed wee wen wet wha who why wig win wis wit wiz woe won woo wos wot wow wry wud wye wyn yag yak yam yap yar yaw yay yea yeh yen yep yes yet yew yin yip yob yod yon you yow yuk yum yup zag zap zas zax zea zed zee zek zig zin zip zit zoa zoo abs ace act add ado ads aft age ago aid ail aim air alb ale all alp alt amp amu ana and ane ant any ape app apt arc are arm art ash ask asp ass ate ave avo awe awl awn axe aye ays azo bad bag bah bal bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bio bis bit biz boa bob bog boo bop bow box boy bra bub bud bug bum bun bur bus but buy bye cab cad cam can cap car caw cay cee cel cep chi cob cod cog con coo cop cor cos cot cow cox coy coz cru cry cub cud cue cup cur cut dab dad dag dah dak dal dam dan dap daw day deb dee def del den dev dew dex dey dib did die dig dim din dip dis dit doc doe dog dol dom don dor dos dot dry dub dud due dug dun duo dye ear eat eau ebb ecu edh eel eff efs egg ego eke eld elf elk ell elm els eme emf emu end eng ens eon era ere erg ern err ers ess eta eth eve ewe eye fab fad fag fan far fas fat fax fay fed fee feg feh fem fen fer fes fet feu fex fey fez fib fid fie fig fil fin fir fit fix fly fob foe fog foh fon fop for fou fox foy fro fry fub fud pug pub pun pup pur put pya pye pyx";
         
@@ -259,8 +295,8 @@
         // 4. MODULES
         // ==========================================
 
-        // --- MODULE: WURDLE ---
-        const Wurdle = ({ onBack }) => {
+        // --- MODULE: WORDLE ---
+        const Wordle = ({ onBack }) => {
             const [solution, setSolution] = useState("");
             const [guesses, setGuesses] = useState([]);
             const [currentGuess, setCurrentGuess] = useState("");
@@ -271,12 +307,12 @@
             const inputRef = useRef(null);
 
             useEffect(() => {
-                dbHelper.getHighScore('wurdle').then(setHighScore);
+                dbHelper.getHighScore('wordle').then(setHighScore);
                 startNewGame();
             }, []);
 
             const startNewGame = async () => {
-                const usedWords = await dbHelper.getUsedWords('wurdle');
+                const usedWords = await dbHelper.getUsedWords('wordle');
                 let availableWords = WORDS_5_LETTER.filter(w => !usedWords.includes(w));
                 
                 // Reset if we somehow run out of 5 letter words
@@ -302,8 +338,8 @@
                     setGameStatus("won");
                     const newScore = score + (7 - newGuesses.length) * 10;
                     setScore(newScore);
-                    dbHelper.saveScore('wurdle', newScore);
-                    dbHelper.addUsedWord('wurdle', solution.toLowerCase());
+                    dbHelper.saveScore('wordle', newScore);
+                    dbHelper.addUsedWord('wordle', solution.toLowerCase());
                     setMessage("Brilliant!");
                 } else if (newGuesses.length >= 6) {
                     setGameStatus("lost");
@@ -327,7 +363,7 @@
             const getLetterStyle = (letter, index, guess) => {
                 if (!guess) return "bg-white border-2 border-gray-300 text-gray-800";
                 
-                // Logic for Wurdle coloring
+                // Logic for Wordle coloring
                 const solArray = solution.split('');
                 const guessArray = guess.split('');
                 
@@ -345,7 +381,7 @@
 
             return (
                 <div className="min-h-screen flex flex-col max-w-2xl mx-auto w-full pb-8">
-                    <TopBar title="Wurdle" onBack={onBack} score={score} highScore={highScore} />
+                    <TopBar title="Wordle" onBack={onBack} score={score} highScore={highScore} />
                     
                     <div className="text-center text-gray-700 font-extrabold text-2xl mt-2 mb-6">
                         Guess the word
@@ -1242,7 +1278,7 @@
                                 <div className="flex gap-4">
                                     <div className="mt-1 text-teal-600"><Icon name="BrainCircuit" size={28} /></div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 text-lg">Wurdle</h3>
+                                        <h3 className="font-bold text-gray-900 text-lg">Wordle</h3>
                                         <p className="text-sm text-gray-600 mt-1 leading-relaxed">Enhances deductive reasoning and working memory as you logically eliminate letters to deduce the hidden word.</p>
                                     </div>
                                 </div>
@@ -1289,7 +1325,7 @@
         // 5. MAIN MENU & APP ROUTING
         // ==========================================
         const GAMES = [
-            { id: 'wurdle', name: 'Wurdle', desc: 'Guess the 5-letter word in 6 tries.', icon: 'BrainCircuit', color: 'bg-teal-100 text-teal-800', type: 'score' },
+            { id: 'wordle', name: 'Wordle', desc: 'Guess the 5-letter word in 6 tries.', icon: 'BrainCircuit', color: 'bg-teal-100 text-teal-800', type: 'score' },
             { id: 'wordsearch', name: 'Word Search', desc: 'Find hidden words in the grid.', icon: 'Search', color: 'bg-indigo-100 text-indigo-800', type: 'score' },
             { id: 'wordtower', name: 'Word Tower', desc: 'Connect adjacent letters to clear blocks.', icon: 'Blocks', color: 'bg-rose-100 text-rose-800', type: 'score' },
             { id: 'jigsaw', name: 'Mystery Jigsaw', desc: 'Piece together a beautiful random scene.', icon: 'Puzzle', color: 'bg-amber-100 text-amber-800', type: 'time' },
@@ -1299,6 +1335,11 @@
         const MainMenu = ({ onSelectGame }) => {
             const [scores, setScores] = useState({});
             const [showResetConfirm, setShowResetConfirm] = useState(false);
+            
+            // PWA Install State
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [isInstalled, setIsInstalled] = useState(false);
+            const [showInstallInstructions, setShowInstallInstructions] = useState(false);
 
             const loadScores = async () => {
                 let s = {};
@@ -1318,12 +1359,77 @@
 
             useEffect(() => {
                 loadScores();
+
+                // Check if running as a standalone installed PWA
+                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                    setIsInstalled(true);
+                }
+
+                // Listen for native install prompt (Chrome/Edge/Android)
+                const handleBeforeInstallPrompt = (e) => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                };
+
+                // Listen for successful installation
+                const handleAppInstalled = () => {
+                    setIsInstalled(true);
+                    setDeferredPrompt(null);
+                };
+
+                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                window.addEventListener('appinstalled', handleAppInstalled);
+
+                return () => {
+                    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                    window.removeEventListener('appinstalled', handleAppInstalled);
+                };
             }, []);
 
             const handleReset = async () => {
                 await dbHelper.clearAllData();
                 await loadScores();
                 setShowResetConfirm(false);
+            };
+
+            const handleInstallClick = async () => {
+                if (deferredPrompt) {
+                    // Trigger native Chrome/Android prompt
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') setIsInstalled(true);
+                    setDeferredPrompt(null);
+                } else {
+                    // Trigger manual instructions modal for iOS / Firefox / Desktop Safari
+                    setShowInstallInstructions(true);
+                }
+            };
+
+            const getInstallInstructions = () => {
+                const ua = navigator.userAgent.toLowerCase();
+                const isIos = /iphone|ipad|ipod/.test(ua);
+                const isAndroid = /android/.test(ua);
+                const isChrome = /chrome|chromium|crios/.test(ua);
+                
+                if (isIos) {
+                    return {
+                        title: "Install on iPhone / iPad",
+                        text: "Tap the Share icon at the bottom or top of your screen, then scroll down and tap 'Add to Home Screen'.",
+                        icon: "Share"
+                    };
+                }
+                if (isAndroid && isChrome) {
+                    return {
+                        title: "Install on Android",
+                        text: "Tap the Menu icon (⋮) at the top right of your browser, then tap 'Add to Home screen'.",
+                        icon: "MoreVertical"
+                    };
+                }
+                return {
+                    title: "Install App",
+                    text: "Look for an 'Install' icon in your browser's address bar, or check your browser menu for an 'Add to Home screen' option.",
+                    icon: "Download"
+                };
             };
 
             return (
@@ -1359,18 +1465,28 @@
                     </div>
                     
                     <div className="mt-auto pt-8 flex flex-col items-center gap-4">
-                        <div className="flex gap-4">
+                        <div className="flex flex-wrap justify-center gap-3">
                             <button 
                                 onClick={() => onSelectGame('about')} 
                                 className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                             >
                                 <Icon name="Info" size={16} /> About this App
                             </button>
+                            
+                            {!isInstalled && (
+                                <button 
+                                    onClick={handleInstallClick} 
+                                    className="text-sm font-bold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    <Icon name="Download" size={16} /> Install App
+                                </button>
+                            )}
+
                             <button 
                                 onClick={() => setShowResetConfirm(true)} 
                                 className="text-sm font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                             >
-                                <Icon name="Trash2" size={16} /> Reset Progress
+                                <Icon name="Trash2" size={16} /> Reset
                             </button>
                         </div>
                         <div className="text-center text-sm text-gray-400 font-medium">
@@ -1378,9 +1494,10 @@
                         </div>
                     </div>
 
+                    {/* Reset Confirmation Modal */}
                     {showResetConfirm && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+                            <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl tile-pop">
                                 <Icon name="AlertTriangle" size={48} className="mx-auto text-rose-500 mb-4" />
                                 <h3 className="text-2xl font-black text-gray-900 mb-2">Reset Progress?</h3>
                                 <p className="text-gray-600 mb-6 font-medium">This will permanently delete all your high scores and clear your played puzzle history. This cannot be undone.</p>
@@ -1388,6 +1505,20 @@
                                     <Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">Cancel</Button>
                                     <Button variant="danger" onClick={handleReset} className="flex-1">Reset</Button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PWA Install Instructions Modal */}
+                    {showInstallInstructions && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl tile-pop">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 text-teal-600 mb-4">
+                                    <Icon name={getInstallInstructions().icon} size={32} />
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 mb-2">{getInstallInstructions().title}</h3>
+                                <p className="text-gray-600 mb-6 font-medium leading-relaxed">{getInstallInstructions().text}</p>
+                                <Button variant="primary" onClick={() => setShowInstallInstructions(false)} className="w-full">Got it</Button>
                             </div>
                         </div>
                     )}
@@ -1449,7 +1580,7 @@
                 <div>
                     {currentView === 'menu' && <MainMenu onSelectGame={setCurrentView} />}
                     {currentView === 'about' && <About onBack={() => setCurrentView('menu')} />}
-                    {currentView === 'wurdle' && <Wurdle onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'wordle' && <Wordle onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordsearch' && <WordSearch onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordtower' && <WordTower onBack={() => setCurrentView('menu')} />}
                     {currentView === 'jigsaw' && <JigsawPuzzle onBack={() => setCurrentView('menu')} />}
