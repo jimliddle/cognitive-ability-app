@@ -1261,6 +1261,351 @@
             );
         };
 
+        // --- MODULE: PATIENCE (SOLITAIRE) ---
+        const Patience = ({ onBack }) => {
+            const [deck, setDeck] = useState([]);
+            const [waste, setWaste] = useState([]);
+            const [foundations, setFoundations] = useState([[], [], [], []]);
+            const [tableau, setTableau] = useState([[], [], [], [], [], [], []]);
+            
+            const [selected, setSelected] = useState(null); // { zone: 'waste'|'tableau'|'foundation', col: num, row: num }
+            const [moves, setMoves] = useState(0);
+            const [bestMoves, setBestMoves] = useState(null);
+            const [won, setWon] = useState(false);
+
+            useEffect(() => {
+                dbHelper.getLeastMoves('patience').then(setBestMoves);
+                startNewGame();
+            }, []);
+
+            const startNewGame = () => {
+                let newDeck = [];
+                let idCounter = 0;
+                // Suits: 0=Hearts, 1=Diamonds, 2=Clubs, 3=Spades
+                for (let suit = 0; suit < 4; suit++) {
+                    for (let rank = 1; rank <= 13; rank++) {
+                        newDeck.push({ id: idCounter++, rank, suit, hidden: true });
+                    }
+                }
+
+                // Shuffle
+                for (let i = newDeck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+                }
+
+                // Deal Tableau
+                let newTableau = [[], [], [], [], [], [], []];
+                for (let col = 0; col < 7; col++) {
+                    for (let row = 0; row <= col; row++) {
+                        let card = newDeck.pop();
+                        if (row === col) card.hidden = false;
+                        newTableau[col].push(card);
+                    }
+                }
+
+                setTableau(newTableau);
+                setDeck(newDeck);
+                setWaste([]);
+                setFoundations([[], [], [], []]);
+                setSelected(null);
+                setMoves(0);
+                setWon(false);
+            };
+
+            const isOppositeColor = (suit1, suit2) => {
+                const isRed1 = suit1 === 0 || suit1 === 1;
+                const isRed2 = suit2 === 0 || suit2 === 1;
+                return isRed1 !== isRed2;
+            };
+
+            const handleDeckClick = () => {
+                if (won) return;
+                setSelected(null);
+                
+                let newDeck = [...deck];
+                let newWaste = [...waste];
+
+                if (newDeck.length > 0) {
+                    let card = newDeck.pop();
+                    card.hidden = false;
+                    newWaste.push(card);
+                } else if (newWaste.length > 0) {
+                    // Recycle waste to deck
+                    newDeck = newWaste.reverse().map(c => ({ ...c, hidden: true }));
+                    newWaste = [];
+                }
+
+                setDeck(newDeck);
+                setWaste(newWaste);
+                setMoves(m => m + 1);
+            };
+
+            const handleSlotClick = (zone, colIndex, rowIndex) => {
+                if (won) return;
+
+                // 1. SELECTING A CARD
+                if (!selected) {
+                    let card = null;
+                    if (zone === 'waste' && waste.length > 0) card = waste[waste.length - 1];
+                    else if (zone === 'foundation' && foundations[colIndex].length > 0) card = foundations[colIndex][foundations[colIndex].length - 1];
+                    else if (zone === 'tableau' && tableau[colIndex].length > 0 && rowIndex !== -1) {
+                        card = tableau[colIndex][rowIndex];
+                        if (card.hidden) return; // Cannot select hidden cards
+                    }
+
+                    if (card) {
+                        setSelected({ zone, col: colIndex, row: rowIndex !== -1 ? rowIndex : 0 });
+                    }
+                    return;
+                }
+
+                // 2. DESELECTING / CLICKING SAME CARD
+                if (selected.zone === zone && selected.col === colIndex && selected.row === rowIndex) {
+                    setSelected(null);
+                    return;
+                }
+
+                // 3. TRYING TO MOVE
+                let sourceCard = null;
+                let movingStack = [];
+
+                if (selected.zone === 'waste') {
+                    sourceCard = waste[waste.length - 1];
+                    movingStack = [sourceCard];
+                } else if (selected.zone === 'foundation') {
+                    sourceCard = foundations[selected.col][foundations[selected.col].length - 1];
+                    movingStack = [sourceCard];
+                } else if (selected.zone === 'tableau') {
+                    sourceCard = tableau[selected.col][selected.row];
+                    movingStack = tableau[selected.col].slice(selected.row);
+                }
+
+                let isValid = false;
+
+                // Move to Foundation
+                if (zone === 'foundation' && movingStack.length === 1) {
+                    const topFoundation = foundations[colIndex].length > 0 ? foundations[colIndex][foundations[colIndex].length - 1] : null;
+                    if (!topFoundation && sourceCard.rank === 1) isValid = true; // Ace to empty
+                    else if (topFoundation && topFoundation.suit === sourceCard.suit && topFoundation.rank + 1 === sourceCard.rank) isValid = true;
+                }
+                
+                // Move to Tableau
+                else if (zone === 'tableau') {
+                    const topTableau = tableau[colIndex].length > 0 ? tableau[colIndex][tableau[colIndex].length - 1] : null;
+                    if (!topTableau && sourceCard.rank === 13) isValid = true; // King to empty
+                    else if (topTableau && !topTableau.hidden && topTableau.rank - 1 === sourceCard.rank && isOppositeColor(topTableau.suit, sourceCard.suit)) isValid = true;
+                }
+
+                // Execute Move
+                if (isValid) {
+                    let newWaste = [...waste];
+                    let newFoundations = foundations.map(arr => [...arr]);
+                    let newTableau = tableau.map(arr => [...arr]);
+
+                    // Remove from source
+                    if (selected.zone === 'waste') newWaste.pop();
+                    else if (selected.zone === 'foundation') newFoundations[selected.col].pop();
+                    else if (selected.zone === 'tableau') {
+                        newTableau[selected.col] = newTableau[selected.col].slice(0, selected.row);
+                        // Auto-flip newly exposed top card
+                        if (newTableau[selected.col].length > 0) {
+                            newTableau[selected.col][newTableau[selected.col].length - 1].hidden = false;
+                        }
+                    }
+
+                    // Add to destination
+                    if (zone === 'foundation') newFoundations[colIndex].push(sourceCard);
+                    else if (zone === 'tableau') newTableau[colIndex].push(...movingStack);
+
+                    setWaste(newWaste);
+                    setFoundations(newFoundations);
+                    setTableau(newTableau);
+                    setSelected(null);
+                    setMoves(m => m + 1);
+
+                    // Check Win (All foundations have 13 cards)
+                    if (newFoundations.every(f => f.length === 13)) {
+                        setWon(true);
+                        if (bestMoves === null || moves + 1 < bestMoves) {
+                            setBestMoves(moves + 1);
+                            dbHelper.saveLeastMoves('patience', moves + 1);
+                        }
+                    }
+                } else {
+                    // Invalid move, simply change selection if tapped another valid card
+                    if (zone === 'tableau' && tableau[colIndex].length > 0 && !tableau[colIndex][rowIndex]?.hidden) {
+                        setSelected({ zone, col: colIndex, row: rowIndex });
+                    } else {
+                        setSelected(null);
+                    }
+                }
+            };
+
+            const CardView = ({ card, isSelected, onClick, className = "" }) => {
+                if (!card) return <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-white/20 bg-black/20 cursor-pointer ${className}`}></div>;
+
+                if (card.hidden) {
+                    return (
+                        <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md bg-indigo-700 border border-white shadow-sm flex items-center justify-center cursor-pointer ${className}`}>
+                            <div className="w-8 h-12 sm:w-12 sm:h-20 bg-indigo-800 rounded opacity-40 border border-indigo-500 flex items-center justify-center">
+                                <Icon name="Layers" size={24} className="text-white opacity-20" />
+                            </div>
+                        </div>
+                    );
+                }
+
+                const suits = { 0: '♥', 1: '♦', 2: '♣', 3: '♠' };
+                const colors = { 0: 'text-rose-600', 1: 'text-rose-600', 2: 'text-gray-900', 3: 'text-gray-900' };
+                const ranks = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+                const displayRank = ranks[card.rank] || card.rank;
+                const colorClass = colors[card.suit];
+
+                return (
+                    <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md bg-white border border-gray-300 shadow flex flex-col justify-between p-1 sm:p-2 cursor-pointer transition-all duration-200 ${isSelected ? 'ring-4 ring-amber-400 z-50 scale-105 shadow-2xl -translate-y-2' : 'hover:shadow-md'} ${className}`}>
+                        <div className={`text-[10px] sm:text-sm md:text-lg font-black ${colorClass} leading-none`}>{displayRank}</div>
+                        <div className={`text-lg sm:text-2xl md:text-4xl text-center ${colorClass}`}>{suits[card.suit]}</div>
+                        <div className={`text-[10px] sm:text-sm md:text-lg font-black ${colorClass} leading-none text-right rotate-180`}>{displayRank}</div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-4xl mx-auto w-full pb-8 select-none touch-none">
+                    <TopBar title="Patience" onBack={onBack} moves={moves} bestMoves={bestMoves} />
+
+                    <div className="flex-1 px-2 sm:px-4 flex flex-col">
+                        <div className="flex justify-between items-center mb-2 px-2">
+                            <p className="text-sm text-gray-600 font-medium hidden sm:block">Tap a card to select it, then tap its destination.</p>
+                            <button onClick={startNewGame} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 ml-auto">
+                                <Icon name="RefreshCw" size={16} /> Restart
+                            </button>
+                        </div>
+
+                        {/* Rich green game board */}
+                        <div className="bg-emerald-800 flex-1 rounded-2xl shadow-inner border-4 border-emerald-900 p-3 sm:p-6 overflow-hidden flex flex-col gap-6 relative">
+                            
+                            {won && (
+                                <div className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center rounded-xl backdrop-blur-sm">
+                                    <div className="bg-white p-8 rounded-2xl text-center shadow-2xl tile-pop max-w-sm">
+                                        <h2 className="text-3xl font-black text-emerald-600 mb-2">You Won!</h2>
+                                        <p className="text-gray-600 mb-6 font-medium">Completed in {moves} moves.</p>
+                                        <Button onClick={startNewGame} variant="success" className="mx-auto w-full">Play Again</Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Top Row: Deck, Waste, Spacer, Foundations */}
+                            <div className="flex justify-between gap-1 sm:gap-2">
+                                <div className="flex gap-1 sm:gap-2 w-1/2">
+                                    {/* Deck */}
+                                    <div className="relative">
+                                        {deck.length > 0 ? (
+                                            <CardView card={{hidden: true}} onClick={handleDeckClick} />
+                                        ) : (
+                                            <div onClick={handleDeckClick} className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/50 flex items-center justify-center cursor-pointer hover:bg-emerald-700/50 transition-colors">
+                                                <Icon name="RefreshCw" size={24} className="text-emerald-500 opacity-50" />
+                                            </div>
+                                        )}
+                                        {deck.length > 0 && <div className="absolute -bottom-2 -right-2 bg-emerald-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{deck.length}</div>}
+                                    </div>
+                                    
+                                    {/* Waste */}
+                                    <div className="relative flex">
+                                        {waste.length === 0 ? (
+                                            <CardView card={null} />
+                                        ) : (
+                                            // Show up to top 3 cards in waste slightly offset
+                                            waste.slice(-3).map((card, idx, arr) => {
+                                                const isTop = idx === arr.length - 1;
+                                                const isSelected = selected?.zone === 'waste' && isTop;
+                                                return (
+                                                    <div key={card.id} className={`relative ${idx > 0 ? "-ml-6 sm:-ml-10 md:-ml-12" : ""}`} style={{ zIndex: idx }}>
+                                                        <CardView 
+                                                            card={card} 
+                                                            isSelected={isSelected} 
+                                                            onClick={() => isTop ? handleSlotClick('waste', 0, 0) : null} 
+                                                        />
+                                                    </div>
+                                                )
+                                            })
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Foundations */}
+                                <div className="flex gap-1 sm:gap-2 w-1/2 justify-end">
+                                    {foundations.map((foundation, colIdx) => {
+                                        const topCard = foundation.length > 0 ? foundation[foundation.length - 1] : null;
+                                        const isSelected = selected?.zone === 'foundation' && selected?.col === colIdx;
+                                        
+                                        // Empty placeholder icons
+                                        const foundationSuits = ['♥', '♦', '♣', '♠'];
+                                        const fColor = colIdx < 2 ? 'text-rose-900/30' : 'text-gray-900/30';
+
+                                        return (
+                                            <div key={`found-${colIdx}`} className="relative">
+                                                {topCard ? (
+                                                    <CardView 
+                                                        card={topCard} 
+                                                        isSelected={isSelected}
+                                                        onClick={() => handleSlotClick('foundation', colIdx, foundation.length - 1)}
+                                                    />
+                                                ) : (
+                                                    <div 
+                                                        onClick={() => handleSlotClick('foundation', colIdx, -1)}
+                                                        className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/30 flex items-center justify-center cursor-pointer hover:bg-emerald-800/50"
+                                                    >
+                                                        <span className={`text-2xl sm:text-4xl ${fColor}`}>{foundationSuits[colIdx]}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Bottom Area: Tableau */}
+                            <div className="flex justify-between gap-1 sm:gap-2 flex-1 mt-4">
+                                {tableau.map((column, colIdx) => (
+                                    <div 
+                                        key={`tab-${colIdx}`} 
+                                        className="flex flex-col flex-1 relative min-h-[150px]"
+                                    >
+                                        {column.length === 0 ? (
+                                            <CardView card={null} onClick={() => handleSlotClick('tableau', colIdx, -1)} className="mx-auto relative z-10" />
+                                        ) : (
+                                            column.map((card, rowIdx) => {
+                                                const isSelected = selected?.zone === 'tableau' && selected?.col === colIdx && rowIdx >= selected?.row;
+                                                return (
+                                                    <div 
+                                                        key={card.id} 
+                                                        className={`relative mx-auto ${rowIdx > 0 ? (card.hidden ? "-mt-[4.5rem] sm:-mt-[5rem] md:-mt-[5.5rem]" : "-mt-[4.5rem] sm:-mt-[4.5rem] md:-mt-[4.5rem]") : ""}`}
+                                                        style={{ zIndex: rowIdx + 10 }}
+                                                    >
+                                                        <CardView 
+                                                            card={card} 
+                                                            isSelected={isSelected}
+                                                            onClick={() => handleSlotClick('tableau', colIdx, rowIdx)}
+                                                        />
+                                                    </div>
+                                                )
+                                            })
+                                        )}
+                                        {/* Invisible touch target to make dropping on columns easier */}
+                                        <div 
+                                            className="absolute inset-0 z-0" 
+                                            onClick={() => handleSlotClick('tableau', colIdx, column.length > 0 ? column.length - 1 : -1)}
+                                        ></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- MODULE: ABOUT ---
         const About = ({ onBack }) => {
             return (
@@ -1272,9 +1617,17 @@
                                 This was an application designed by <span className="font-bold text-indigo-700">Jim Liddle</span> to help his parents keep cognitively fit.
                             </p>
                             
-                            <h2 className="text-xl font-black text-indigo-900 mb-6">The app was designed with 5 exercises:</h2>
+                            <h2 className="text-xl font-black text-indigo-900 mb-6">The app was designed with 6 exercises:</h2>
                             
                             <div className="space-y-6">
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-emerald-600"><Icon name="Layers" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Patience</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Challenges executive function, working memory, and strategic planning by requiring multi-step problem solving and sequencing.</p>
+                                    </div>
+                                </div>
+
                                 <div className="flex gap-4">
                                     <div className="mt-1 text-teal-600"><Icon name="BrainCircuit" size={28} /></div>
                                     <div>
@@ -1330,6 +1683,7 @@
             { id: 'wordtower', name: 'Word Tower', desc: 'Connect adjacent letters to clear blocks.', icon: 'Blocks', color: 'bg-rose-100 text-rose-800', type: 'score' },
             { id: 'jigsaw', name: 'Mystery Jigsaw', desc: 'Piece together a beautiful random scene.', icon: 'Puzzle', color: 'bg-amber-100 text-amber-800', type: 'time' },
             { id: 'memorymatch', name: 'Memory Match', desc: 'Find the matching pairs with fewest moves.', icon: 'LayoutGrid', color: 'bg-blue-100 text-blue-800', type: 'moves' },
+            { id: 'patience', name: 'Patience', desc: 'Classic Klondike solitaire card game.', icon: 'Layers', color: 'bg-emerald-100 text-emerald-800', type: 'moves' },
         ];
 
         const MainMenu = ({ onSelectGame }) => {
@@ -1580,6 +1934,7 @@
                 <div>
                     {currentView === 'menu' && <MainMenu onSelectGame={setCurrentView} />}
                     {currentView === 'about' && <About onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'patience' && <Patience onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordle' && <Wordle onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordsearch' && <WordSearch onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordtower' && <WordTower onBack={() => setCurrentView('menu')} />}
