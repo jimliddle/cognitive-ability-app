@@ -25,7 +25,6 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Dynamic PWA Manifest Injection -->
     <script>
         (function() {
             const manifest = {
@@ -85,15 +84,11 @@
         // ==========================================
         // 1. DATA: WORD LIST
         // ==========================================
-        // A curated list of words, heavy on 5-letter words for Wordle, mixed with longer words for other games.
-        // In a production environment with an external file, this could easily be 5,000+ words.
         const DICTIONARY_STRING = "apple alive adult about actor acute admit adopt adapt abuse alert alien alike allow alone along alter amaze angel anger angle angry apart apple apply arena argue arise armed armor array arrow asset audio audit avoid award aware badly baker bases basic basis beach beast begin belly below bench bingo birth black blame blind block blood board brain brand bread break brick bring broad brown brush build bunch buyer cabin cable camel catch cause chain chair chest chief child chill claim class clean clear click clock close coach coast count cover cream cross crowd crown curve cycle daily dance dawns delay depth digit dirty doing doubt dozen draft drain dream dress drill drink drive eager early earth eight elite empty enemy enjoy enter entry equal error event exact exist extra faded false fault fiber field fifth fifty fight final first fixed flame flash fleet floor fluid focus force frame frank front fruit fully funny giant glass globe going grace grand grant grass great green gross group guard guess guest guide habit happy heart heavy hello horse hotel house human ideal image index inner input issue joint judge juice labor large laser later laugh layer learn lease least leave legal level light limit lipid liver local logic loose lower lucky magic major maker match mayor meant metal might minor model money month moral motor mount mouse mouth movie music naked newly night noise north novel nurse occur ocean offer often order other ought paint panel paper party peace phase phone photo piece pilot pitch place plain plane plant plate point pound power press price pride prime print prior prize proof proud prove queen quick quiet quite radio raise range rapid ratio reach ready refer relax right river roman rough round royal rural scale scene scope score sense serve seven shape share sharp sheep sheet shift shirt shock short sight skill sleep small smart smile smith smoke solid solve sound south space speak speed spend split spoke sport staff stage stand start state steam steel stick still stock stone store storm story strip style sugar suite super sweet table taste teach theme thick thing think third those three throw tiger tight title toast today topic total touch tower track trade train treat trend trial trust truth uncle under union unity upset value video visit voice vowel waste watch water wheel where which white whole whose woman women words world worry worst would wound write wrong yield young youth active agility brain memory puzzle logic smart clever puzzle search words tower letter blocks logic puzzle search spell doe does dog dogs cat cats bat bats hat hats mat mats rat rats sat pat pats fat fats vat vats eat eats tea teas pea peas sea seas see sees bee bees fee fees tee tees toe toes hoe hoes roe roes woe woes ear ears era eras are area areas arm arms art arts ark arks ant ants and any all ask ass ate ave awe awl awn axe bad bag bah bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bit boa bob bog boo bop bow box boy bub bud bug bum bun bus but buy bye cab cad cam can cap car caw cay cob cod cog con coo cop cot cow cox coy coz cry cub cud cue cup cur cut dab dad dam dap daw day deb dee def del den dew dex did die dig dim din dip doc doe dog don dot dry dub dud due dug dun duo dye ear eat ebb eel egg ego eke elf elk elm emo emu end eng eon era erg err eta eve eye fab fad fag fan far fas fat fax fay fed fee fen fex fey fez fib fig fin fir fit fix fly fob foe fog foh fon fop for fox foy fro fry fub pug pub pun pup pur put pya pye pyx tab tag tam tap tar tas tat tau tav taw tax tea ted tee teg tel ten tet tew the thy tic tie tig tin tip tit toe tog tom ton too top tor tot tow toy try tub tug tui tun tup tut tux twa two tye udo ugh uke ump uns upo ups urb urn use uta vac van vat vau vav vaw vet vex via vie vig vim vis vow vox vug wab wad wae wag wan wap war was wat waw wax way web wed wee wen wet wha who why wig win wis wit wiz woe won woo wos wot wow wry wud wye wyn yag yak yam yap yar yaw yay yea yeh yen yep yes yet yew yin yip yob yod yon you yow yuk yum yup zag zap zas zax zea zed zee zek zig zin zip zit zoa zoo abs ace act add ado ads aft age ago aid ail aim air alb ale all alp alt amp amu ana and ane ant any ape app apt arc are arm art ash ask asp ass ate ave avo awe awl awn axe aye ays azo bad bag bah bal bam ban bap bar bas bat bay bed beg bel ben bet bey bib bid big bin bio bis bit biz boa bob bog boo bop bow box boy bra bub bud bug bum bun bur bus but buy bye cab cad cam can cap car caw cay cee cel cep chi cob cod cog con coo cop cor cos cot cow cox coy coz cru cry cub cud cue cup cur cut dab dad dag dah dak dal dam dan dap daw day deb dee def del den dev dew dex dey dib did die dig dim din dip dis dit doc doe dog dol dom don dor dos dot dry dub dud due dug dun duo dye ear eat eau ebb ecu edh eel eff efs egg ego eke eld elf elk ell elm els eme emf emu end eng ens eon era ere erg ern err ers ess eta eth eve ewe eye fab fad fag fan far fas fat fax fay fed fee feg feh fem fen fer fes fet feu fex fey fez fib fid fie fig fil fin fir fit fix fly fob foe fog foh fon fop for fou fox foy fro fry fub fud pug pub pun pup pur put pya pye pyx";
         
         const ALL_WORDS = Array.from(new Set(DICTIONARY_STRING.toLowerCase().split(' ').filter(w => w.length >= 3)));
         const WORDS_5_LETTER = ALL_WORDS.filter(w => w.length === 5);
         
-        // This set is used for validating user input (e.g., in Word Tower)
-        // It starts with our base dictionary and is dynamically expanded on load.
         const VALIDATION_DICTIONARY = new Set(ALL_WORDS);
 
         // ==========================================
@@ -109,17 +104,10 @@
                     const req = indexedDB.open(DB_NAME, DB_VERSION);
                     req.onupgradeneeded = (e) => {
                         const db = e.target.result;
-                        if (!db.objectStoreNames.contains('scores')) {
-                            db.createObjectStore('scores', { keyPath: 'gameId' });
-                        }
-                        if (!db.objectStoreNames.contains('state')) {
-                            db.createObjectStore('state', { keyPath: 'key' });
-                        }
+                        if (!db.objectStoreNames.contains('scores')) db.createObjectStore('scores', { keyPath: 'gameId' });
+                        if (!db.objectStoreNames.contains('state')) db.createObjectStore('state', { keyPath: 'key' });
                     };
-                    req.onsuccess = (e) => {
-                        this.db = e.target.result;
-                        resolve(this.db);
-                    };
+                    req.onsuccess = (e) => { this.db = e.target.result; resolve(this.db); };
                     req.onerror = (e) => reject(e.target.error);
                 });
             },
@@ -131,9 +119,7 @@
                     const req = store.get(gameId);
                     req.onsuccess = () => {
                         const existing = req.result;
-                        if (!existing || score > existing.highScore) {
-                            store.put({ gameId, highScore: score });
-                        }
+                        if (!existing || score > existing.highScore) store.put({ gameId, highScore: score });
                         resolve();
                     };
                 });
@@ -156,10 +142,7 @@
                     const req = store.get(gameId);
                     req.onsuccess = () => {
                         const existing = req.result || { gameId };
-                        if (!existing.bestTime || time < existing.bestTime) {
-                            existing.bestTime = time;
-                            store.put(existing);
-                        }
+                        if (!existing.bestTime || time < existing.bestTime) { existing.bestTime = time; store.put(existing); }
                         resolve();
                     };
                 });
@@ -182,10 +165,7 @@
                     const req = store.get(gameId);
                     req.onsuccess = () => {
                         const existing = req.result || { gameId };
-                        if (!existing.bestMoves || moves < existing.bestMoves) {
-                            existing.bestMoves = moves;
-                            store.put(existing);
-                        }
+                        if (!existing.bestMoves || moves < existing.bestMoves) { existing.bestMoves = moves; store.put(existing); }
                         resolve();
                     };
                 });
@@ -300,7 +280,7 @@
             const [solution, setSolution] = useState("");
             const [guesses, setGuesses] = useState([]);
             const [currentGuess, setCurrentGuess] = useState("");
-            const [gameStatus, setGameStatus] = useState("playing"); // playing, won, lost
+            const [gameStatus, setGameStatus] = useState("playing"); 
             const [highScore, setHighScore] = useState(0);
             const [score, setScore] = useState(0);
             const [message, setMessage] = useState("");
@@ -314,12 +294,7 @@
             const startNewGame = async () => {
                 const usedWords = await dbHelper.getUsedWords('wordle');
                 let availableWords = WORDS_5_LETTER.filter(w => !usedWords.includes(w));
-                
-                // Reset if we somehow run out of 5 letter words
-                if (availableWords.length === 0) {
-                    availableWords = WORDS_5_LETTER;
-                }
-                
+                if (availableWords.length === 0) availableWords = WORDS_5_LETTER;
                 const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
                 setSolution(randomWord.toUpperCase());
                 setGuesses([]);
@@ -351,29 +326,16 @@
             const handleInputChange = (e) => {
                 if (gameStatus !== "playing") return;
                 const val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
-                
-                if (val.length < 5) {
-                    setCurrentGuess(val);
-                } else if (val.length === 5) {
-                    // Auto-submit instantly when 5 letters are entered
-                    processGuess(val);
-                }
+                if (val.length < 5) setCurrentGuess(val);
+                else if (val.length === 5) processGuess(val);
             };
 
             const getLetterStyle = (letter, index, guess) => {
                 if (!guess) return "bg-white border-2 border-gray-300 text-gray-800";
-                
-                // Logic for Wordle coloring
                 const solArray = solution.split('');
                 const guessArray = guess.split('');
-                
                 if (guessArray[index] === solArray[index]) return "bg-teal-500 border-teal-500 text-white";
-                
-                if (solArray.includes(guessArray[index])) {
-                    // Check for duplicates issue (simplified for readability)
-                    return "bg-amber-400 border-amber-400 text-white";
-                }
-                
+                if (solArray.includes(guessArray[index])) return "bg-amber-400 border-amber-400 text-white";
                 return "bg-gray-400 border-gray-400 text-white";
             };
 
@@ -396,30 +358,16 @@
                     )}
 
                     <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 w-full px-4">
-                        {/* Legend */}
                         <div className="flex sm:flex-col justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-bold text-gray-600 sm:w-32 order-2 sm:order-1 mt-6 sm:mt-0 flex-shrink-0">
                             <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-teal-500 rounded border border-teal-600 flex-shrink-0"></div> Correct</div>
                             <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-amber-400 rounded border border-amber-500 flex-shrink-0"></div> Wrong Place</div>
                             <div className="flex items-center gap-2"><div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-400 rounded border border-gray-500 flex-shrink-0"></div> Incorrect</div>
                         </div>
 
-                        {/* Board */}
-                        <div 
-                            className="relative flex flex-col gap-2 cursor-text order-1 sm:order-2 flex-shrink-0"
-                            onClick={() => inputRef.current?.focus()}
-                        >
+                        <div className="relative flex flex-col gap-2 cursor-text order-1 sm:order-2 flex-shrink-0" onClick={() => inputRef.current?.focus()}>
                             {gameStatus === "playing" && (
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={currentGuess}
-                                    autoFocus
-                                    className="absolute opacity-0 w-full h-full inset-0 z-10 cursor-text"
-                                    onChange={handleInputChange}
-                                    aria-label="Hidden input for mobile keyboard"
-                                />
+                                <input ref={inputRef} type="text" value={currentGuess} autoFocus className="absolute opacity-0 w-full h-full inset-0 z-10 cursor-text" onChange={handleInputChange} aria-label="Hidden input for mobile keyboard" />
                             )}
-
                             {rows.map((_, i) => {
                                 const guess = guesses[i] || (i === guesses.length ? currentGuess : "");
                                 return (
@@ -427,10 +375,7 @@
                                         {Array(5).fill(null).map((_, j) => {
                                             const letter = guess[j] || "";
                                             const isSubmitted = i < guesses.length;
-                                            const style = isSubmitted 
-                                                ? getLetterStyle(letter, j, guess) 
-                                                : (letter ? "border-2 border-gray-600 text-gray-900 bg-white" : "border-2 border-gray-300 text-gray-900 bg-gray-50");
-                                            
+                                            const style = isSubmitted ? getLetterStyle(letter, j, guess) : (letter ? "border-2 border-gray-600 text-gray-900 bg-white" : "border-2 border-gray-300 text-gray-900 bg-gray-50");
                                             return (
                                                 <div key={j} className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center text-2xl sm:text-3xl font-extrabold uppercase rounded-lg ${style} transition-all duration-300`}>
                                                     {letter}
@@ -441,8 +386,6 @@
                                 );
                             })}
                         </div>
-                        
-                        {/* Spacer to perfectly center the board on desktop */}
                         <div className="hidden sm:block w-32 order-3 flex-shrink-0"></div>
                     </div>
 
@@ -462,12 +405,9 @@
             const [wordsToFind, setWordsToFind] = useState([]);
             const [foundWords, setFoundWords] = useState([]);
             const [foundTiles, setFoundTiles] = useState([]);
-            
-            // Interaction state for dragging
             const [isDragging, setIsDragging] = useState(false);
             const [dragStart, setDragStart] = useState(null);
             const [dragCurrent, setDragCurrent] = useState(null);
-            
             const [score, setScore] = useState(0);
             const [highScore, setHighScore] = useState(0);
             const [won, setWon] = useState(false);
@@ -482,20 +422,15 @@
                 let availableWords = ALL_WORDS.filter(w => w.length >= 4 && w.length <= 8 && !usedWords.includes(w));
                 if (availableWords.length < 5) availableWords = ALL_WORDS.filter(w => w.length >= 4 && w.length <= 8);
 
-                // Select 5 random words
                 const selected = [];
                 for(let i=0; i<5; i++) {
                     const w = availableWords.splice(Math.floor(Math.random() * availableWords.length), 1)[0];
                     if(w) selected.push(w.toUpperCase());
                 }
 
-                // Initialize empty grid
                 let newGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''));
-                
-                // Directions: right, down, diagonal-down-right
                 const dirs = [[0,1], [1,0], [1,1]];
 
-                // Place words
                 selected.forEach(word => {
                     let placed = false;
                     let attempts = 0;
@@ -508,29 +443,21 @@
                         for (let i = 0; i < word.length; i++) {
                             const r = row + (dir[0] * i);
                             const c = col + (dir[1] * i);
-                            if (r >= GRID_SIZE || c >= GRID_SIZE || (newGrid[r][c] !== '' && newGrid[r][c] !== word[i])) {
-                                canPlace = false;
-                                break;
-                            }
+                            if (r >= GRID_SIZE || c >= GRID_SIZE || (newGrid[r][c] !== '' && newGrid[r][c] !== word[i])) { canPlace = false; break; }
                         }
 
                         if (canPlace) {
-                            for (let i = 0; i < word.length; i++) {
-                                newGrid[row + (dir[0] * i)][col + (dir[1] * i)] = word[i];
-                            }
+                            for (let i = 0; i < word.length; i++) newGrid[row + (dir[0] * i)][col + (dir[1] * i)] = word[i];
                             placed = true;
                         }
                         attempts++;
                     }
                 });
 
-                // Fill rest with random letters
                 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 for (let r=0; r<GRID_SIZE; r++) {
                     for (let c=0; c<GRID_SIZE; c++) {
-                        if (newGrid[r][c] === '') {
-                            newGrid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
-                        }
+                        if (newGrid[r][c] === '') newGrid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
                     }
                 }
 
@@ -544,117 +471,67 @@
                 setWon(false);
             };
 
-            const handlePointerDown = (r, c) => {
-                if (won) return;
-                setIsDragging(true);
-                setDragStart({r, c});
-                setDragCurrent({r, c});
-            };
-
-            const handlePointerMove = (e, r, c) => {
-                if (!isDragging || won) return;
-                setDragCurrent({r, c});
-            };
-
+            const handlePointerDown = (r, c) => { if (won) return; setIsDragging(true); setDragStart({r, c}); setDragCurrent({r, c}); };
+            const handlePointerMove = (e, r, c) => { if (!isDragging || won) return; setDragCurrent({r, c}); };
             const handleTouchMove = (e) => {
                 if (!isDragging || won) return;
                 const touch = e.touches[0];
                 const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (elem && elem.dataset.r && elem.dataset.c) {
-                    setDragCurrent({
-                        r: parseInt(elem.dataset.r), 
-                        c: parseInt(elem.dataset.c)
-                    });
-                }
+                if (elem && elem.dataset.r && elem.dataset.c) setDragCurrent({ r: parseInt(elem.dataset.r), c: parseInt(elem.dataset.c) });
             };
 
             const handlePointerUp = () => {
-                if (!isDragging || !dragStart || !dragCurrent) {
-                    setIsDragging(false);
-                    return;
-                }
-                
-                const start = dragStart;
-                const end = dragCurrent;
-                
-                const dr = end.r - start.r;
-                const dc = end.c - start.c;
+                if (!isDragging || !dragStart || !dragCurrent) { setIsDragging(false); return; }
+                const start = dragStart; const end = dragCurrent;
+                const dr = end.r - start.r; const dc = end.c - start.c;
                 
                 if (dr !== 0 || dc !== 0) {
                     const isStraightLine = (dr === 0) || (dc === 0) || (Math.abs(dr) === Math.abs(dc));
-                    
                     if (isStraightLine) {
                         const steps = Math.max(Math.abs(dr), Math.abs(dc));
                         const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
                         const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
-                        
-                        let wordFormed = "";
-                        let path = [];
+                        let wordFormed = ""; let path = [];
                         for (let i = 0; i <= steps; i++) {
-                            const curR = start.r + (stepR * i);
-                            const curC = start.c + (stepC * i);
-                            wordFormed += grid[curR][curC];
-                            path.push({r: curR, c: curC});
+                            const curR = start.r + (stepR * i); const curC = start.c + (stepC * i);
+                            wordFormed += grid[curR][curC]; path.push({r: curR, c: curC});
                         }
-                        
                         let wordFormedRev = wordFormed.split('').reverse().join('');
-
-                        if (wordsToFind.includes(wordFormed) && !foundWords.includes(wordFormed)) {
-                            handleWordFound(wordFormed, path);
-                        } else if (wordsToFind.includes(wordFormedRev) && !foundWords.includes(wordFormedRev)) {
-                            handleWordFound(wordFormedRev, path);
-                        }
+                        if (wordsToFind.includes(wordFormed) && !foundWords.includes(wordFormed)) handleWordFound(wordFormed, path);
+                        else if (wordsToFind.includes(wordFormedRev) && !foundWords.includes(wordFormedRev)) handleWordFound(wordFormedRev, path);
                     }
                 }
-                
-                setIsDragging(false);
-                setDragStart(null);
-                setDragCurrent(null);
+                setIsDragging(false); setDragStart(null); setDragCurrent(null);
             };
 
-            // Global pointer up to catch releases outside the grid
             useEffect(() => {
                 const handleGlobalUp = () => { if (isDragging) handlePointerUp(); };
                 window.addEventListener('mouseup', handleGlobalUp);
                 window.addEventListener('touchend', handleGlobalUp);
-                return () => {
-                    window.removeEventListener('mouseup', handleGlobalUp);
-                    window.removeEventListener('touchend', handleGlobalUp);
-                };
+                return () => { window.removeEventListener('mouseup', handleGlobalUp); window.removeEventListener('touchend', handleGlobalUp); };
             }, [isDragging, dragStart, dragCurrent]);
 
             const getHighlightedTiles = () => {
                 if (!isDragging || !dragStart || !dragCurrent) return [];
-                const start = dragStart;
-                const end = dragCurrent;
-                const dr = end.r - start.r;
-                const dc = end.c - start.c;
+                const start = dragStart; const end = dragCurrent;
+                const dr = end.r - start.r; const dc = end.c - start.c;
                 const isStraightLine = (dr === 0) || (dc === 0) || (Math.abs(dr) === Math.abs(dc));
-                
                 if (!isStraightLine) return [{r: start.r, c: start.c}];
-
                 const steps = Math.max(Math.abs(dr), Math.abs(dc));
-                const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
-                const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
-                
+                const stepR = dr === 0 ? 0 : dr / Math.abs(dr); const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
                 let highlighted = [];
-                for (let i = 0; i <= steps; i++) {
-                    highlighted.push({ r: start.r + (stepR * i), c: start.c + (stepC * i) });
-                }
+                for (let i = 0; i <= steps; i++) highlighted.push({ r: start.r + (stepR * i), c: start.c + (stepC * i) });
                 return highlighted;
             };
 
             const handleWordFound = (word, path) => {
                 const newFound = [...foundWords, word];
-                setFoundWords(newFound);
-                setFoundTiles(prev => [...prev, ...path]);
+                setFoundWords(newFound); setFoundTiles(prev => [...prev, ...path]);
                 setScore(s => s + word.length * 10);
-                
                 if (newFound.length === wordsToFind.length) {
                     setWon(true);
-                    const finalScore = score + (word.length * 10) + 100; // bonus
-                    dbHelper.saveScore('wordsearch', finalScore);
-                    setScore(finalScore);
+                    const finalScore = score + (word.length * 10) + 100;
+                    dbHelper.saveScore('wordsearch', finalScore); setScore(finalScore);
                     newFound.forEach(w => dbHelper.addUsedWord('wordsearch', w.toLowerCase()));
                 }
             };
@@ -666,7 +543,6 @@
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full touch-none select-none">
                     <TopBar title="Word Search" onBack={onBack} score={score} highScore={highScore} />
-                    
                     <div className="p-4 bg-white mx-4 rounded-xl shadow-sm mb-4">
                         <p className="text-gray-600 text-sm mb-2 font-medium">Find these words. Drag your finger across the letters.</p>
                         <div className="flex flex-wrap gap-2">
@@ -677,29 +553,14 @@
                             ))}
                         </div>
                     </div>
-
                     <div className="flex-1 flex items-center justify-center p-2">
-                        <div 
-                            className="grid bg-indigo-900 p-2 rounded-xl gap-1 touch-none" 
-                            style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
-                            onTouchMove={handleTouchMove}
-                        >
+                        <div className="grid bg-indigo-900 p-2 rounded-xl gap-1 touch-none" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }} onTouchMove={handleTouchMove}>
                             {grid.map((row, r) => (
                                 row.map((letter, c) => {
-                                    const highlighted = isTileHighlighted(r, c);
-                                    const found = isTileFound(r, c);
+                                    const highlighted = isTileHighlighted(r, c); const found = isTileFound(r, c);
                                     return (
-                                        <div 
-                                            key={`${r}-${c}`}
-                                            data-r={r}
-                                            data-c={c}
-                                            onPointerDown={() => handlePointerDown(r, c)}
-                                            onPointerEnter={(e) => handlePointerMove(e, r, c)}
-                                            className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl font-bold rounded cursor-pointer no-tap-highlight transition-colors duration-200
-                                                ${highlighted ? 'bg-amber-400 text-white shadow-inner' : 
-                                                  found ? 'bg-teal-200 text-teal-800' : 
-                                                  'bg-white text-indigo-900 hover:bg-indigo-50'}`}
-                                        >
+                                        <div key={`${r}-${c}`} data-r={r} data-c={c} onPointerDown={() => handlePointerDown(r, c)} onPointerEnter={(e) => handlePointerMove(e, r, c)}
+                                            className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl font-bold rounded cursor-pointer no-tap-highlight transition-colors duration-200 ${highlighted ? 'bg-amber-400 text-white shadow-inner' : found ? 'bg-teal-200 text-teal-800' : 'bg-white text-indigo-900 hover:bg-indigo-50'}`}>
                                             {letter}
                                         </div>
                                     )
@@ -707,7 +568,6 @@
                             ))}
                         </div>
                     </div>
-
                     {won && (
                         <div className="p-6 text-center animate-pulse">
                             <h2 className="text-2xl font-black text-teal-600 mb-4">Excellent Job!</h2>
@@ -723,7 +583,7 @@
             const COLS = 7;
             const ROWS = 9;
             const [grid, setGrid] = useState([]);
-            const [selectedPath, setSelectedPath] = useState([]); // array of {r, c}
+            const [selectedPath, setSelectedPath] = useState([]);
             const [isDragging, setIsDragging] = useState(false);
             const [score, setScore] = useState(0);
             const [highScore, setHighScore] = useState(0);
@@ -735,152 +595,83 @@
             }, []);
 
             const generateGrid = () => {
-                // To ensure playable boards, we mix common letters heavily
-                const vowels = "AEIOU";
-                const commonCons = "RSTLNCDG";
-                const allAlpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                
+                const vowels = "AEIOU"; const commonCons = "RSTLNCDG"; const allAlpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 let newGrid = [];
                 for(let r=0; r<ROWS; r++){
                     let row = [];
                     for(let c=0; c<COLS; c++) {
-                        const rand = Math.random();
-                        let letter = "";
+                        const rand = Math.random(); let letter = "";
                         if (rand < 0.4) letter = vowels[Math.floor(Math.random()*vowels.length)];
                         else if (rand < 0.8) letter = commonCons[Math.floor(Math.random()*commonCons.length)];
                         else letter = allAlpha[Math.floor(Math.random()*allAlpha.length)];
-                        
                         row.push({ id: `${r}-${c}-${Date.now()}`, letter });
                     }
                     newGrid.push(row);
                 }
-                setGrid(newGrid);
-                setSelectedPath([]);
-                setIsDragging(false);
-                setScore(0);
+                setGrid(newGrid); setSelectedPath([]); setIsDragging(false); setScore(0);
             };
 
-            const handlePointerDown = (r, c) => {
-                if (!grid[r][c]) return;
-                setIsDragging(true);
-                setSelectedPath([{r, c}]);
-            };
-
+            const handlePointerDown = (r, c) => { if (!grid[r][c]) return; setIsDragging(true); setSelectedPath([{r, c}]); };
             const handlePointerMove = (r, c) => {
                 if (!isDragging || !grid[r][c]) return;
-                
                 const existingIndex = selectedPath.findIndex(p => p.r === r && p.c === c);
-                
-                if (existingIndex !== -1) {
-                    // Truncate path to allow backtracking
-                    setSelectedPath(selectedPath.slice(0, existingIndex + 1));
-                    return;
-                }
-
-                // Check adjacency
+                if (existingIndex !== -1) { setSelectedPath(selectedPath.slice(0, existingIndex + 1)); return; }
                 const last = selectedPath[selectedPath.length - 1];
-                const rDiff = Math.abs(last.r - r);
-                const cDiff = Math.abs(last.c - c);
-                
-                if (rDiff <= 1 && cDiff <= 1 && !(rDiff === 0 && cDiff === 0)) {
-                    setSelectedPath(prev => [...prev, {r, c}]);
-                }
+                const rDiff = Math.abs(last.r - r); const cDiff = Math.abs(last.c - c);
+                if (rDiff <= 1 && cDiff <= 1 && !(rDiff === 0 && cDiff === 0)) setSelectedPath(prev => [...prev, {r, c}]);
             };
-
             const handleTouchMove = (e) => {
                 if (!isDragging) return;
-                const touch = e.touches[0];
-                const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (elem && elem.dataset.r && elem.dataset.c) {
-                    const r = parseInt(elem.dataset.r);
-                    const c = parseInt(elem.dataset.c);
-                    handlePointerMove(r, c);
-                }
+                const touch = e.touches[0]; const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (elem && elem.dataset.r && elem.dataset.c) handlePointerMove(parseInt(elem.dataset.r), parseInt(elem.dataset.c));
             };
 
             const handlePointerUp = () => {
                 if (!isDragging) return;
                 setIsDragging(false);
-                
-                if (selectedPath.length >= 3) {
-                    submitWord(selectedPath);
-                } else {
-                    setSelectedPath([]);
-                }
+                if (selectedPath.length >= 3) submitWord(selectedPath); else setSelectedPath([]);
             };
 
             useEffect(() => {
                 const handleGlobalUp = () => { if (isDragging) handlePointerUp(); };
-                window.addEventListener('mouseup', handleGlobalUp);
-                window.addEventListener('touchend', handleGlobalUp);
-                return () => {
-                    window.removeEventListener('mouseup', handleGlobalUp);
-                    window.removeEventListener('touchend', handleGlobalUp);
-                };
+                window.addEventListener('mouseup', handleGlobalUp); window.addEventListener('touchend', handleGlobalUp);
+                return () => { window.removeEventListener('mouseup', handleGlobalUp); window.removeEventListener('touchend', handleGlobalUp); };
             }, [isDragging, selectedPath]);
 
             const submitWord = (path) => {
                 const word = path.map(p => grid[p.r][p.c].letter).join('');
-                
                 if (VALIDATION_DICTIONARY.has(word.toLowerCase())) {
-                    // Valid Word!
-                    let pts = word.length * 10 * (word.length - 2); // scaling points
-                    const newScore = score + pts;
-                    setScore(newScore);
-                    dbHelper.saveScore('wordtower', newScore);
-                    dbHelper.addUsedWord('wordtower', word.toLowerCase());
-                    
+                    let pts = word.length * 10 * (word.length - 2);
+                    const newScore = score + pts; setScore(newScore);
+                    dbHelper.saveScore('wordtower', newScore); dbHelper.addUsedWord('wordtower', word.toLowerCase());
                     showMessage(`Awesome! +${pts} pts`);
                     
-                    // Remove tiles and apply gravity
-                    let newGrid = JSON.parse(JSON.stringify(grid)); // deep copy
-                    path.forEach(p => {
-                        newGrid[p.r][p.c] = null;
-                    });
-
-                    // Gravity: bottom up
+                    let newGrid = JSON.parse(JSON.stringify(grid));
+                    path.forEach(p => { newGrid[p.r][p.c] = null; });
                     for (let c = 0; c < COLS; c++) {
                         let emptySpaces = 0;
                         for (let r = ROWS - 1; r >= 0; r--) {
-                            if (newGrid[r][c] === null) {
-                                emptySpaces++;
-                            } else if (emptySpaces > 0) {
-                                // Fall down
-                                newGrid[r + emptySpaces][c] = newGrid[r][c];
-                                newGrid[r][c] = null;
-                            }
+                            if (newGrid[r][c] === null) emptySpaces++;
+                            else if (emptySpaces > 0) { newGrid[r + emptySpaces][c] = newGrid[r][c]; newGrid[r][c] = null; }
                         }
                     }
-
-                    setGrid(newGrid);
-                    setSelectedPath([]);
-                } else {
-                    showMessage("Not a valid word.");
-                    setSelectedPath([]);
-                }
+                    setGrid(newGrid); setSelectedPath([]);
+                } else { showMessage("Not a valid word."); setSelectedPath([]); }
             };
 
-            const showMessage = (msg) => {
-                setMessage(msg);
-                setTimeout(() => setMessage(""), 2000);
-            };
-
+            const showMessage = (msg) => { setMessage(msg); setTimeout(() => setMessage(""), 2000); };
             const isSelected = (r, c) => selectedPath.some(p => p.r === r && p.c === c);
             const currentWord = selectedPath.map(p => grid[p.r][p.c]?.letter || "").join('');
-            
-            // Check if the board is completely empty
             const isBoardEmpty = grid.length > 0 && grid.every(row => row.every(cell => cell === null));
 
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-6 touch-none select-none">
                     <TopBar title="Word Tower" onBack={onBack} score={score} highScore={highScore} />
-
                     <div className="px-4 mb-2 flex justify-between items-end h-16">
                         <div className="text-3xl font-black text-indigo-800 tracking-widest uppercase flex-1 text-center bg-indigo-50 rounded-xl py-2 shadow-inner border border-indigo-100 transition-all">
                             {currentWord || <span className="text-gray-300">_ _ _</span>}
                         </div>
                     </div>
-
                     {message && <div className="text-center text-rose-600 font-bold h-6">{message}</div>}
                     {!message && !isBoardEmpty && <div className="text-center text-gray-500 text-sm h-6">Drag to connect adjacent letters</div>}
 
@@ -891,36 +682,20 @@
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center p-4">
-                            <div 
-                                className="grid gap-1 bg-gray-200 p-2 rounded-xl touch-none mb-6" 
-                                style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}
-                                onTouchMove={handleTouchMove}
-                            >
+                            <div className="grid gap-1 bg-gray-200 p-2 rounded-xl touch-none mb-6" style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }} onTouchMove={handleTouchMove}>
                                 {grid.map((row, r) => (
                                     row.map((cell, c) => {
-                                        if (!cell) {
-                                            return <div key={`empty-${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent"></div>;
-                                        }
+                                        if (!cell) return <div key={`empty-${r}-${c}`} className="w-10 h-10 sm:w-12 sm:h-12 bg-transparent"></div>;
                                         const selected = isSelected(r, c);
-                                        // Use a stable key based on the cell ID to allow react animations when falling
                                         return (
-                                            <div 
-                                                key={cell.id}
-                                                data-r={r}
-                                                data-c={c}
-                                                onPointerDown={() => handlePointerDown(r, c)}
-                                                onPointerEnter={() => handlePointerMove(r, c)}
-                                                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded-lg cursor-pointer no-tap-highlight transition-all duration-200 shadow-sm
-                                                    ${selected ? 'bg-teal-500 text-white transform scale-95' : 'bg-white text-gray-800 hover:bg-teal-50'}`}
-                                            >
+                                            <div key={cell.id} data-r={r} data-c={c} onPointerDown={() => handlePointerDown(r, c)} onPointerEnter={() => handlePointerMove(r, c)}
+                                                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded-lg cursor-pointer no-tap-highlight transition-all duration-200 shadow-sm ${selected ? 'bg-teal-500 text-white transform scale-95' : 'bg-white text-gray-800 hover:bg-teal-50'}`}>
                                                 {cell.letter}
                                             </div>
                                         )
                                     })
                                 ))}
                             </div>
-                            
-                            {/* Manual restart button if the user gets stuck without any valid words left */}
                             <button onClick={generateGrid} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
                                 <Icon name="RefreshCw" size={16} /> New Board
                             </button>
@@ -935,216 +710,104 @@
             const [location, setLocation] = useState(null);
             const [board, setBoard] = useState(Array(9).fill(null));
             const [pool, setPool] = useState([]);
-            const [selected, setSelected] = useState(null); // { type: 'board'|'pool', index }
+            const [selected, setSelected] = useState(null);
             const [time, setTime] = useState(0);
             const [bestTime, setBestTime] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [won, setWon] = useState(false);
 
-            useEffect(() => {
-                dbHelper.getBestTime('jigsaw').then(setBestTime);
-                startNewGame();
-            }, []);
+            useEffect(() => { dbHelper.getBestTime('jigsaw').then(setBestTime); startNewGame(); }, []);
 
             useEffect(() => {
                 let timer;
-                if (isPlaying && !won) {
-                    timer = setInterval(() => setTime(t => t + 1), 1000);
-                }
+                if (isPlaying && !won) timer = setInterval(() => setTime(t => t + 1), 1000);
                 return () => clearInterval(timer);
             }, [isPlaying, won]);
 
             const startNewGame = (resetTime = true) => {
-                // Generate a random seed on the fly to fetch a completely new, unique image every single time!
                 const randomSeed = Math.floor(Math.random() * 100000);
-                
-                setLocation({
-                    name: `Mystery Scene #${randomSeed}`,
-                    url: `https://picsum.photos/seed/${randomSeed}/600/600`
-                });
-                
-                // Shuffle pieces 0-8
+                setLocation({ name: `Mystery Scene #${randomSeed}`, url: `https://picsum.photos/seed/${randomSeed}/600/600` });
                 let pieces = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-                for (let i = pieces.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
-                }
-                
-                setPool(pieces);
-                setBoard(Array(9).fill(null));
-                setSelected(null);
-                if (resetTime) {
-                    setTime(0);
-                }
-                setIsPlaying(true);
-                setWon(false);
+                for (let i = pieces.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pieces[i], pieces[j]] = [pieces[j], pieces[i]]; }
+                setPool(pieces); setBoard(Array(9).fill(null)); setSelected(null);
+                if (resetTime) setTime(0);
+                setIsPlaying(true); setWon(false);
             };
 
             const handleSlotClick = (type, index) => {
                 if (won) return;
-
                 const clickedPieceId = type === 'board' ? board[index] : pool[index];
-
-                // Prevent interaction with correctly placed (locked) pieces on the board
                 const isLocked = type === 'board' && clickedPieceId === index;
                 if (isLocked) return;
 
                 if (!selected) {
-                    // Select piece if it exists
-                    if (clickedPieceId !== null) {
-                        setSelected({ type, index });
-                    }
+                    if (clickedPieceId !== null) setSelected({ type, index });
                 } else {
-                    // If clicked the exact same piece, deselect
-                    if (selected.type === type && selected.index === index) {
-                        setSelected(null);
-                        return;
-                    }
-
-                    // Swap or Move logic
-                    let newBoard = [...board];
-                    let newPool = [...pool];
-
+                    if (selected.type === type && selected.index === index) { setSelected(null); return; }
+                    let newBoard = [...board]; let newPool = [...pool];
                     const sourcePieceId = selected.type === 'board' ? newBoard[selected.index] : newPool[selected.index];
                     const targetPieceId = type === 'board' ? newBoard[index] : newPool[index];
-
-                    if (selected.type === 'board') newBoard[selected.index] = targetPieceId;
-                    else newPool[selected.index] = targetPieceId;
-
-                    if (type === 'board') newBoard[index] = sourcePieceId;
-                    else newPool[index] = sourcePieceId;
-
-                    setBoard(newBoard);
-                    setPool(newPool);
-                    setSelected(null);
-
-                    // Check Win Condition
+                    if (selected.type === 'board') newBoard[selected.index] = targetPieceId; else newPool[selected.index] = targetPieceId;
+                    if (type === 'board') newBoard[index] = sourcePieceId; else newPool[index] = sourcePieceId;
+                    setBoard(newBoard); setPool(newPool); setSelected(null);
                     if (newBoard.every((p, i) => p === i)) {
-                        setWon(true);
-                        setIsPlaying(false);
-                        dbHelper.saveTime('jigsaw', time);
-                        if (bestTime === null || time < bestTime) {
-                            setBestTime(time);
-                        }
+                        setWon(true); setIsPlaying(false); dbHelper.saveTime('jigsaw', time);
+                        if (bestTime === null || time < bestTime) setBestTime(time);
                     }
                 }
             };
 
             const renderPiece = (pieceId, isSelected, isLocked) => {
                 if (pieceId === null) return null;
-                const row = Math.floor(pieceId / 3);
-                const col = pieceId % 3;
+                const row = Math.floor(pieceId / 3); const col = pieceId % 3;
                 return (
-                    <div 
-                        className={`w-full h-full rounded transition-transform relative overflow-hidden ${isSelected ? 'ring-4 ring-amber-500 scale-95 z-20' : isLocked ? 'z-10' : 'hover:scale-105 shadow-sm'}`}
-                    >
-                        <div className="w-full h-full bg-gray-100" style={{
-                            backgroundImage: `url(${location.url})`,
-                            backgroundSize: '300% 300%',
-                            backgroundPosition: `${col * 50}% ${row * 50}%`,
-                        }}></div>
-                        
-                        {isLocked && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-teal-500/40 ring-4 ring-teal-500 ring-inset">
-                                <Icon name="Check" size={40} className="text-white drop-shadow-lg opacity-100" />
-                            </div>
-                        )}
+                    <div className={`w-full h-full rounded transition-transform relative overflow-hidden ${isSelected ? 'ring-4 ring-amber-500 scale-95 z-20' : isLocked ? 'z-10' : 'hover:scale-105 shadow-sm'}`}>
+                        <div className="w-full h-full bg-gray-100" style={{ backgroundImage: `url(${location.url})`, backgroundSize: '300% 300%', backgroundPosition: `${col * 50}% ${row * 50}%` }}></div>
+                        {isLocked && <div className="absolute inset-0 flex items-center justify-center bg-teal-500/40 ring-4 ring-teal-500 ring-inset"><Icon name="Check" size={40} className="text-white drop-shadow-lg opacity-100" /></div>}
                     </div>
                 );
             };
 
             if (!location) return null;
-
             const allPiecesOnBoard = pool.every(p => p === null);
             const isWrong = allPiecesOnBoard && !won;
 
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
                     <TopBar title="Mystery Jigsaw" onBack={onBack} time={time} bestTime={bestTime} />
-
                     <div className="flex flex-col items-center flex-1 px-4 gap-4">
-                        {/* Reference Image & Instructions */}
                         <div className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100 w-full max-w-[320px]">
                             <img src={location.url} alt={location.name} className="w-16 h-16 rounded-lg object-cover shadow-sm border border-gray-200 bg-gray-100" />
                             <div>
                                 <h2 className="text-lg font-bold text-gray-800 leading-tight flex items-center gap-2">
                                     Match the Scene
-                                    {!won && (
-                                        <button 
-                                            onClick={() => startNewGame(false)} 
-                                            className="text-indigo-500 hover:text-indigo-700 active:scale-95 transition-all p-1 bg-indigo-50 rounded-full" 
-                                            title="Get a new image (keeps timer running)"
-                                        >
-                                            <Icon name="RefreshCw" size={14} />
-                                        </button>
-                                    )}
+                                    {!won && <button onClick={() => startNewGame(false)} className="text-indigo-500 hover:text-indigo-700 active:scale-95 transition-all p-1 bg-indigo-50 rounded-full" title="Get a new image"><Icon name="RefreshCw" size={14} /></button>}
                                 </h2>
                                 <p className="text-xs text-gray-500 mt-1 font-medium">Rebuild the image above. Correct pieces will lock into place.</p>
                             </div>
                         </div>
-
-                        {/* Error Message if stuck */}
-                        {isWrong && (
-                            <div className="text-amber-700 font-bold text-sm bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 animate-pulse text-center w-full max-w-[320px]">
-                                Pieces placed, but some are wrong. Keep swapping!
-                            </div>
-                        )}
-
-                        {/* Board */}
-                        <div 
-                            className="w-full max-w-[320px] aspect-square rounded-xl bg-gray-200 shadow-inner p-1 grid grid-cols-3 grid-rows-3 gap-1 relative overflow-hidden"
-                        >
+                        {isWrong && <div className="text-amber-700 font-bold text-sm bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 animate-pulse text-center w-full max-w-[320px]">Pieces placed, but some are wrong. Keep swapping!</div>}
+                        <div className="w-full max-w-[320px] aspect-square rounded-xl bg-gray-200 shadow-inner p-1 grid grid-cols-3 grid-rows-3 gap-1 relative overflow-hidden">
                             {board.map((pieceId, i) => {
-                                const isSelected = selected?.type === 'board' && selected?.index === i;
-                                const isLocked = pieceId === i;
-                                return (
-                                    <div 
-                                        key={`board-${i}`} 
-                                        className={`relative z-10 bg-white/40 rounded cursor-pointer ${!won && pieceId === null && selected ? 'ring-2 ring-indigo-300 ring-inset' : ''}`}
-                                        onClick={() => handleSlotClick('board', i)}
-                                    >
-                                        {renderPiece(pieceId, isSelected, isLocked)}
-                                    </div>
-                                )
+                                const isSelected = selected?.type === 'board' && selected?.index === i; const isLocked = pieceId === i;
+                                return <div key={`board-${i}`} className={`relative z-10 bg-white/40 rounded cursor-pointer ${!won && pieceId === null && selected ? 'ring-2 ring-indigo-300 ring-inset' : ''}`} onClick={() => handleSlotClick('board', i)}>{renderPiece(pieceId, isSelected, isLocked)}</div>
                             })}
-
-                            {/* Win overlay to hide gaps and show full image smoothly */}
-                            {won && (
-                                <div 
-                                    className="absolute inset-0 z-20 tile-pop rounded-xl"
-                                    style={{ backgroundImage: `url(${location.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                                ></div>
-                            )}
+                            {won && <div className="absolute inset-0 z-20 tile-pop rounded-xl" style={{ backgroundImage: `url(${location.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>}
                         </div>
-
-                        {/* Pool / Tray */}
                         {!won ? (
                             <div className="w-full max-w-[320px] bg-white rounded-xl p-3 shadow-sm border border-gray-100 min-h-[120px]">
                                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Pieces Tray</div>
                                 <div className="flex flex-wrap gap-2 justify-center">
                                     {pool.map((pieceId, i) => {
-                                        if (pieceId === null) return null; // Slot empty in pool
+                                        if (pieceId === null) return null;
                                         const isSelected = selected?.type === 'pool' && selected?.index === i;
-                                        return (
-                                            <div 
-                                                key={`pool-${pieceId}`}
-                                                className="w-20 h-20 cursor-pointer flex-shrink-0"
-                                                onClick={() => handleSlotClick('pool', i)}
-                                            >
-                                                {renderPiece(pieceId, isSelected, false)}
-                                            </div>
-                                        );
+                                        return <div key={`pool-${pieceId}`} className="w-20 h-20 cursor-pointer flex-shrink-0" onClick={() => handleSlotClick('pool', i)}>{renderPiece(pieceId, isSelected, false)}</div>
                                     })}
-                                    {pool.every(p => p === null) && !isWrong && (
-                                        <div className="w-full text-center text-gray-400 font-medium py-4">All pieces placed!</div>
-                                    )}
+                                    {pool.every(p => p === null) && !isWrong && <div className="w-full text-center text-gray-400 font-medium py-4">All pieces placed!</div>}
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center animate-pulse mt-4">
-                                <h2 className="text-3xl font-black text-amber-500 mb-6">Puzzle Solved!</h2>
-                                <Button onClick={startNewGame} variant="primary" className="mx-auto">Play Next Puzzle</Button>
-                            </div>
+                            <div className="text-center animate-pulse mt-4"><h2 className="text-3xl font-black text-amber-500 mb-6">Puzzle Solved!</h2><Button onClick={startNewGame} variant="primary" className="mx-auto">Play Next Puzzle</Button></div>
                         )}
                     </div>
                 </div>
@@ -1162,100 +825,52 @@
             const [isLocked, setIsLocked] = useState(false);
             const [won, setWon] = useState(false);
 
-            useEffect(() => {
-                dbHelper.getLeastMoves('memorymatch').then(setBestMoves);
-                startNewGame();
-            }, []);
+            useEffect(() => { dbHelper.getLeastMoves('memorymatch').then(setBestMoves); startNewGame(); }, []);
 
             const startNewGame = () => {
-                const shuffled = [...ICONS, ...ICONS]
-                    .sort(() => Math.random() - 0.5)
-                    .map((icon, id) => ({ id, icon }));
-                setCards(shuffled);
-                setFlipped([]);
-                setMatched(new Set());
-                setMoves(0);
-                setWon(false);
-                setIsLocked(false);
+                const timestamp = Date.now();
+                const shuffled = [...ICONS, ...ICONS].sort(() => Math.random() - 0.5).map((icon, id) => ({ id: `${id}-${timestamp}`, icon }));
+                setCards(shuffled); setFlipped([]); setMatched(new Set()); setMoves(0); setWon(false); setIsLocked(false);
             };
 
             const handleCardClick = (index) => {
                 if (isLocked || flipped.includes(index) || matched.has(index)) return;
-
-                const newFlipped = [...flipped, index];
-                setFlipped(newFlipped);
+                const newFlipped = [...flipped, index]; setFlipped(newFlipped);
 
                 if (newFlipped.length === 2) {
-                    setIsLocked(true);
-                    setMoves(m => m + 1);
-                    
+                    setIsLocked(true); setMoves(m => m + 1);
                     const [first, second] = newFlipped;
                     if (cards[first].icon === cards[second].icon) {
                         setMatched(prev => {
                             const next = new Set(prev).add(first).add(second);
                             if (next.size === cards.length) {
                                 setWon(true);
-                                if (bestMoves === null || moves + 1 < bestMoves) {
-                                    setBestMoves(moves + 1);
-                                    dbHelper.saveLeastMoves('memorymatch', moves + 1);
-                                }
+                                if (bestMoves === null || moves + 1 < bestMoves) { setBestMoves(moves + 1); dbHelper.saveLeastMoves('memorymatch', moves + 1); }
                             }
                             return next;
                         });
-                        setFlipped([]);
-                        setIsLocked(false);
-                    } else {
-                        // 1.5 seconds gives older adults ample time to register and encode the cards
-                        setTimeout(() => {
-                            setFlipped([]);
-                            setIsLocked(false);
-                        }, 1500); 
-                    }
+                        setFlipped([]); setIsLocked(false);
+                    } else { setTimeout(() => { setFlipped([]); setIsLocked(false); }, 1500); }
                 }
             };
 
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
                     <TopBar title="Memory Match" onBack={onBack} moves={moves} bestMoves={bestMoves} />
-
-                    <div className="text-center px-4 mb-6">
-                        <h2 className="text-xl font-bold text-gray-800">Find the Pairs</h2>
-                        <p className="text-sm text-gray-500 mt-1">Tap two cards to reveal them. Match all pairs in the fewest moves.</p>
-                    </div>
-
+                    <div className="text-center px-4 mb-6"><h2 className="text-xl font-bold text-gray-800">Find the Pairs</h2><p className="text-sm text-gray-500 mt-1">Tap two cards to reveal them. Match all pairs in the fewest moves.</p></div>
                     <div className="flex-1 flex flex-col items-center justify-start px-4">
                         <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-[340px] w-full bg-blue-50 p-4 rounded-xl shadow-inner border border-blue-100">
                             {cards.map((card, i) => {
-                                const isFlipped = flipped.includes(i);
-                                const isMatched = matched.has(i);
-                                const isVisible = isFlipped || isMatched;
-
+                                const isFlipped = flipped.includes(i); const isMatched = matched.has(i); const isVisible = isFlipped || isMatched;
                                 return (
-                                    <div 
-                                        key={card.id}
-                                        onClick={() => handleCardClick(i)}
-                                        className="aspect-square rounded-xl cursor-pointer relative"
-                                    >
-                                        {/* Back of Card */}
-                                        <div className={`absolute inset-0 bg-indigo-500 hover:bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm transition-opacity duration-300 z-10 ${isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                                            <Icon name="Brain" size={28} className="text-indigo-300 opacity-50" />
-                                        </div>
-
-                                        {/* Front of Card */}
-                                        <div className={`absolute inset-0 bg-white rounded-xl flex items-center justify-center border-2 shadow-sm transition-opacity duration-300 z-0 ${isVisible ? 'opacity-100 border-blue-400' : 'opacity-0 border-transparent'} ${isMatched ? 'border-green-400 bg-green-50 opacity-60' : ''}`}>
-                                            <Icon name={card.icon} size={36} className={isMatched ? 'text-green-500' : 'text-blue-600'} />
-                                        </div>
+                                    <div key={card.id} onClick={() => handleCardClick(i)} className="aspect-square rounded-xl cursor-pointer relative">
+                                        <div className={`absolute inset-0 bg-indigo-500 hover:bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm transition-opacity duration-300 z-10 ${isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}><Icon name="Brain" size={28} className="text-indigo-300 opacity-50" /></div>
+                                        <div className={`absolute inset-0 bg-white rounded-xl flex items-center justify-center border-2 shadow-sm transition-opacity duration-300 z-0 ${isVisible ? 'opacity-100 border-blue-400' : 'opacity-0 border-transparent'} ${isMatched ? 'border-green-400 bg-green-50 opacity-60' : ''}`}><Icon name={card.icon} size={36} className={isMatched ? 'text-green-500' : 'text-blue-600'} /></div>
                                     </div>
                                 );
                             })}
                         </div>
-
-                        {won && (
-                            <div className="text-center animate-pulse mt-8">
-                                <h2 className="text-3xl font-black text-blue-600 mb-6">Excellent Memory!</h2>
-                                <Button onClick={startNewGame} variant="primary" className="mx-auto">Play Again</Button>
-                            </div>
-                        )}
+                        {won && <div className="text-center animate-pulse mt-8"><h2 className="text-3xl font-black text-blue-600 mb-6">Excellent Memory!</h2><Button onClick={startNewGame} variant="primary" className="mx-auto">Play Again</Button></div>}
                     </div>
                 </div>
             );
@@ -1268,199 +883,91 @@
             const [foundations, setFoundations] = useState([[], [], [], []]);
             const [tableau, setTableau] = useState([[], [], [], [], [], [], []]);
             
-            const [selected, setSelected] = useState(null); // { zone: 'waste'|'tableau'|'foundation', col: num, row: num }
+            const [selected, setSelected] = useState(null);
             const [moves, setMoves] = useState(0);
             const [bestMoves, setBestMoves] = useState(null);
             const [won, setWon] = useState(false);
 
-            useEffect(() => {
-                dbHelper.getLeastMoves('patience').then(setBestMoves);
-                startNewGame();
-            }, []);
+            useEffect(() => { dbHelper.getLeastMoves('patience').then(setBestMoves); startNewGame(); }, []);
 
             const startNewGame = () => {
-                let newDeck = [];
-                let idCounter = 0;
-                // Suits: 0=Hearts, 1=Diamonds, 2=Clubs, 3=Spades
-                for (let suit = 0; suit < 4; suit++) {
-                    for (let rank = 1; rank <= 13; rank++) {
-                        newDeck.push({ id: idCounter++, rank, suit, hidden: true });
-                    }
-                }
-
-                // Shuffle
-                for (let i = newDeck.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
-                }
-
-                // Deal Tableau
+                let newDeck = []; let idCounter = 0;
+                for (let suit = 0; suit < 4; suit++) { for (let rank = 1; rank <= 13; rank++) newDeck.push({ id: idCounter++, rank, suit, hidden: true }); }
+                for (let i = newDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]]; }
                 let newTableau = [[], [], [], [], [], [], []];
                 for (let col = 0; col < 7; col++) {
-                    for (let row = 0; row <= col; row++) {
-                        let card = newDeck.pop();
-                        if (row === col) card.hidden = false;
-                        newTableau[col].push(card);
-                    }
+                    for (let row = 0; row <= col; row++) { let card = newDeck.pop(); if (row === col) card.hidden = false; newTableau[col].push(card); }
                 }
-
-                setTableau(newTableau);
-                setDeck(newDeck);
-                setWaste([]);
-                setFoundations([[], [], [], []]);
-                setSelected(null);
-                setMoves(0);
-                setWon(false);
+                setTableau(newTableau); setDeck(newDeck); setWaste([]); setFoundations([[], [], [], []]); setSelected(null); setMoves(0); setWon(false);
             };
 
-            const isOppositeColor = (suit1, suit2) => {
-                const isRed1 = suit1 === 0 || suit1 === 1;
-                const isRed2 = suit2 === 0 || suit2 === 1;
-                return isRed1 !== isRed2;
-            };
+            const isOppositeColor = (suit1, suit2) => { const isRed1 = suit1 === 0 || suit1 === 1; const isRed2 = suit2 === 0 || suit2 === 1; return isRed1 !== isRed2; };
 
             const handleDeckClick = () => {
-                if (won) return;
-                setSelected(null);
-                
-                let newDeck = [...deck];
-                let newWaste = [...waste];
-
-                if (newDeck.length > 0) {
-                    let card = newDeck.pop();
-                    card.hidden = false;
-                    newWaste.push(card);
-                } else if (newWaste.length > 0) {
-                    // Recycle waste to deck
-                    newDeck = newWaste.reverse().map(c => ({ ...c, hidden: true }));
-                    newWaste = [];
-                }
-
-                setDeck(newDeck);
-                setWaste(newWaste);
-                setMoves(m => m + 1);
+                if (won) return; setSelected(null);
+                let newDeck = [...deck]; let newWaste = [...waste];
+                if (newDeck.length > 0) { let card = newDeck.pop(); card.hidden = false; newWaste.push(card); } 
+                else if (newWaste.length > 0) { newDeck = newWaste.reverse().map(c => ({ ...c, hidden: true })); newWaste = []; }
+                setDeck(newDeck); setWaste(newWaste); setMoves(m => m + 1);
             };
 
             const handleSlotClick = (zone, colIndex, rowIndex) => {
                 if (won) return;
-
-                // 1. SELECTING A CARD
                 if (!selected) {
                     let card = null;
                     if (zone === 'waste' && waste.length > 0) card = waste[waste.length - 1];
                     else if (zone === 'foundation' && foundations[colIndex].length > 0) card = foundations[colIndex][foundations[colIndex].length - 1];
                     else if (zone === 'tableau' && tableau[colIndex].length > 0 && rowIndex !== -1) {
-                        card = tableau[colIndex][rowIndex];
-                        if (card.hidden) return; // Cannot select hidden cards
+                        card = tableau[colIndex][rowIndex]; if (card.hidden) return;
                     }
-
-                    if (card) {
-                        setSelected({ zone, col: colIndex, row: rowIndex !== -1 ? rowIndex : 0 });
-                    }
+                    if (card) setSelected({ zone, col: colIndex, row: rowIndex !== -1 ? rowIndex : 0 });
                     return;
                 }
 
-                // 2. DESELECTING / CLICKING SAME CARD
-                if (selected.zone === zone && selected.col === colIndex && selected.row === rowIndex) {
-                    setSelected(null);
-                    return;
-                }
+                if (selected.zone === zone && selected.col === colIndex && selected.row === rowIndex) { setSelected(null); return; }
 
-                // 3. TRYING TO MOVE
-                let sourceCard = null;
-                let movingStack = [];
-
-                if (selected.zone === 'waste') {
-                    sourceCard = waste[waste.length - 1];
-                    movingStack = [sourceCard];
-                } else if (selected.zone === 'foundation') {
-                    sourceCard = foundations[selected.col][foundations[selected.col].length - 1];
-                    movingStack = [sourceCard];
-                } else if (selected.zone === 'tableau') {
-                    sourceCard = tableau[selected.col][selected.row];
-                    movingStack = tableau[selected.col].slice(selected.row);
-                }
+                let sourceCard = null; let movingStack = [];
+                if (selected.zone === 'waste') { sourceCard = waste[waste.length - 1]; movingStack = [sourceCard]; } 
+                else if (selected.zone === 'foundation') { sourceCard = foundations[selected.col][foundations[selected.col].length - 1]; movingStack = [sourceCard]; } 
+                else if (selected.zone === 'tableau') { sourceCard = tableau[selected.col][selected.row]; movingStack = tableau[selected.col].slice(selected.row); }
 
                 let isValid = false;
-
-                // Move to Foundation
                 if (zone === 'foundation' && movingStack.length === 1) {
                     const topFoundation = foundations[colIndex].length > 0 ? foundations[colIndex][foundations[colIndex].length - 1] : null;
-                    if (!topFoundation && sourceCard.rank === 1) isValid = true; // Ace to empty
+                    if (!topFoundation && sourceCard.rank === 1) isValid = true;
                     else if (topFoundation && topFoundation.suit === sourceCard.suit && topFoundation.rank + 1 === sourceCard.rank) isValid = true;
-                }
-                
-                // Move to Tableau
-                else if (zone === 'tableau') {
+                } else if (zone === 'tableau') {
                     const topTableau = tableau[colIndex].length > 0 ? tableau[colIndex][tableau[colIndex].length - 1] : null;
-                    if (!topTableau && sourceCard.rank === 13) isValid = true; // King to empty
+                    if (!topTableau && sourceCard.rank === 13) isValid = true;
                     else if (topTableau && !topTableau.hidden && topTableau.rank - 1 === sourceCard.rank && isOppositeColor(topTableau.suit, sourceCard.suit)) isValid = true;
                 }
 
-                // Execute Move
                 if (isValid) {
-                    let newWaste = [...waste];
-                    let newFoundations = foundations.map(arr => [...arr]);
-                    let newTableau = tableau.map(arr => [...arr]);
-
-                    // Remove from source
+                    let newWaste = [...waste]; let newFoundations = foundations.map(arr => [...arr]); let newTableau = tableau.map(arr => [...arr]);
                     if (selected.zone === 'waste') newWaste.pop();
                     else if (selected.zone === 'foundation') newFoundations[selected.col].pop();
                     else if (selected.zone === 'tableau') {
                         newTableau[selected.col] = newTableau[selected.col].slice(0, selected.row);
-                        // Auto-flip newly exposed top card
-                        if (newTableau[selected.col].length > 0) {
-                            newTableau[selected.col][newTableau[selected.col].length - 1].hidden = false;
-                        }
+                        if (newTableau[selected.col].length > 0) newTableau[selected.col][newTableau[selected.col].length - 1].hidden = false;
                     }
+                    if (zone === 'foundation') newFoundations[colIndex].push(sourceCard); else if (zone === 'tableau') newTableau[colIndex].push(...movingStack);
 
-                    // Add to destination
-                    if (zone === 'foundation') newFoundations[colIndex].push(sourceCard);
-                    else if (zone === 'tableau') newTableau[colIndex].push(...movingStack);
-
-                    setWaste(newWaste);
-                    setFoundations(newFoundations);
-                    setTableau(newTableau);
-                    setSelected(null);
-                    setMoves(m => m + 1);
-
-                    // Check Win (All foundations have 13 cards)
+                    setWaste(newWaste); setFoundations(newFoundations); setTableau(newTableau); setSelected(null); setMoves(m => m + 1);
                     if (newFoundations.every(f => f.length === 13)) {
                         setWon(true);
-                        if (bestMoves === null || moves + 1 < bestMoves) {
-                            setBestMoves(moves + 1);
-                            dbHelper.saveLeastMoves('patience', moves + 1);
-                        }
+                        if (bestMoves === null || moves + 1 < bestMoves) { setBestMoves(moves + 1); dbHelper.saveLeastMoves('patience', moves + 1); }
                     }
                 } else {
-                    // Invalid move, simply change selection if tapped another valid card
-                    if (zone === 'tableau' && tableau[colIndex].length > 0 && !tableau[colIndex][rowIndex]?.hidden) {
-                        setSelected({ zone, col: colIndex, row: rowIndex });
-                    } else {
-                        setSelected(null);
-                    }
+                    if (zone === 'tableau' && tableau[colIndex].length > 0 && !tableau[colIndex][rowIndex]?.hidden) setSelected({ zone, col: colIndex, row: rowIndex });
+                    else setSelected(null);
                 }
             };
 
             const CardView = ({ card, isSelected, onClick, className = "" }) => {
                 if (!card) return <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-white/20 bg-black/20 cursor-pointer ${className}`}></div>;
-
-                if (card.hidden) {
-                    return (
-                        <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md bg-indigo-700 border border-white shadow-sm flex items-center justify-center cursor-pointer ${className}`}>
-                            <div className="w-8 h-12 sm:w-12 sm:h-20 bg-indigo-800 rounded opacity-40 border border-indigo-500 flex items-center justify-center">
-                                <Icon name="Layers" size={24} className="text-white opacity-20" />
-                            </div>
-                        </div>
-                    );
-                }
-
-                const suits = { 0: '♥', 1: '♦', 2: '♣', 3: '♠' };
-                const colors = { 0: 'text-rose-600', 1: 'text-rose-600', 2: 'text-gray-900', 3: 'text-gray-900' };
-                const ranks = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
-                const displayRank = ranks[card.rank] || card.rank;
-                const colorClass = colors[card.suit];
-
+                if (card.hidden) return <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md bg-indigo-700 border border-white shadow-sm flex items-center justify-center cursor-pointer ${className}`}><div className="w-8 h-12 sm:w-12 sm:h-20 bg-indigo-800 rounded opacity-40 border border-indigo-500 flex items-center justify-center"><Icon name="Layers" size={24} className="text-white opacity-20" /></div></div>;
+                const suits = { 0: '♥', 1: '♦', 2: '♣', 3: '♠' }; const colors = { 0: 'text-rose-600', 1: 'text-rose-600', 2: 'text-gray-900', 3: 'text-gray-900' }; const ranks = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+                const displayRank = ranks[card.rank] || card.rank; const colorClass = colors[card.suit];
                 return (
                     <div onClick={onClick} className={`w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md bg-white border border-gray-300 shadow flex flex-col justify-between p-1 sm:p-2 cursor-pointer transition-all duration-200 ${isSelected ? 'ring-4 ring-amber-400 z-50 scale-105 shadow-2xl -translate-y-2' : 'hover:shadow-md'} ${className}`}>
                         <div className={`text-[10px] sm:text-sm md:text-lg font-black ${colorClass} leading-none`}>{displayRank}</div>
@@ -1473,134 +980,345 @@
             return (
                 <div className="min-h-screen flex flex-col max-w-4xl mx-auto w-full pb-8 select-none touch-none">
                     <TopBar title="Patience" onBack={onBack} moves={moves} bestMoves={bestMoves} />
-
                     <div className="flex-1 px-2 sm:px-4 flex flex-col">
                         <div className="flex justify-between items-center mb-2 px-2">
                             <p className="text-sm text-gray-600 font-medium hidden sm:block">Tap a card to select it, then tap its destination.</p>
-                            <button onClick={startNewGame} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 ml-auto">
-                                <Icon name="RefreshCw" size={16} /> Restart
-                            </button>
+                            <button onClick={startNewGame} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 ml-auto"><Icon name="RefreshCw" size={16} /> Restart</button>
                         </div>
-
-                        {/* Rich green game board */}
                         <div className="bg-emerald-800 flex-1 rounded-2xl shadow-inner border-4 border-emerald-900 p-3 sm:p-6 overflow-hidden flex flex-col gap-6 relative">
-                            
-                            {won && (
-                                <div className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center rounded-xl backdrop-blur-sm">
-                                    <div className="bg-white p-8 rounded-2xl text-center shadow-2xl tile-pop max-w-sm">
-                                        <h2 className="text-3xl font-black text-emerald-600 mb-2">You Won!</h2>
-                                        <p className="text-gray-600 mb-6 font-medium">Completed in {moves} moves.</p>
-                                        <Button onClick={startNewGame} variant="success" className="mx-auto w-full">Play Again</Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Top Row: Deck, Waste, Spacer, Foundations */}
+                            {won && <div className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center rounded-xl backdrop-blur-sm"><div className="bg-white p-8 rounded-2xl text-center shadow-2xl tile-pop max-w-sm"><h2 className="text-3xl font-black text-emerald-600 mb-2">You Won!</h2><p className="text-gray-600 mb-6 font-medium">Completed in {moves} moves.</p><Button onClick={startNewGame} variant="success" className="mx-auto w-full">Play Again</Button></div></div>}
                             <div className="flex justify-between gap-1 sm:gap-2">
                                 <div className="flex gap-1 sm:gap-2 w-1/2">
-                                    {/* Deck */}
                                     <div className="relative">
-                                        {deck.length > 0 ? (
-                                            <CardView card={{hidden: true}} onClick={handleDeckClick} />
-                                        ) : (
-                                            <div onClick={handleDeckClick} className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/50 flex items-center justify-center cursor-pointer hover:bg-emerald-700/50 transition-colors">
-                                                <Icon name="RefreshCw" size={24} className="text-emerald-500 opacity-50" />
-                                            </div>
-                                        )}
+                                        {deck.length > 0 ? <CardView card={{hidden: true}} onClick={handleDeckClick} /> : <div onClick={handleDeckClick} className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/50 flex items-center justify-center cursor-pointer hover:bg-emerald-700/50 transition-colors"><Icon name="RefreshCw" size={24} className="text-emerald-500 opacity-50" /></div>}
                                         {deck.length > 0 && <div className="absolute -bottom-2 -right-2 bg-emerald-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{deck.length}</div>}
                                     </div>
-                                    
-                                    {/* Waste */}
                                     <div className="relative flex">
-                                        {waste.length === 0 ? (
-                                            <CardView card={null} />
-                                        ) : (
-                                            // Show up to top 3 cards in waste slightly offset
-                                            waste.slice(-3).map((card, idx, arr) => {
-                                                const isTop = idx === arr.length - 1;
-                                                const isSelected = selected?.zone === 'waste' && isTop;
-                                                return (
-                                                    <div key={card.id} className={`relative ${idx > 0 ? "-ml-6 sm:-ml-10 md:-ml-12" : ""}`} style={{ zIndex: idx }}>
-                                                        <CardView 
-                                                            card={card} 
-                                                            isSelected={isSelected} 
-                                                            onClick={() => isTop ? handleSlotClick('waste', 0, 0) : null} 
-                                                        />
-                                                    </div>
-                                                )
-                                            })
-                                        )}
+                                        {waste.length === 0 ? <CardView card={null} /> : waste.slice(-3).map((card, idx, arr) => {
+                                            const isTop = idx === arr.length - 1; const isSelected = selected?.zone === 'waste' && isTop;
+                                            return <div key={card.id} className={`relative ${idx > 0 ? "-ml-6 sm:-ml-10 md:-ml-12" : ""}`} style={{ zIndex: idx }}><CardView card={card} isSelected={isSelected} onClick={() => isTop ? handleSlotClick('waste', 0, 0) : null} /></div>
+                                        })}
                                     </div>
                                 </div>
-
-                                {/* Foundations */}
                                 <div className="flex gap-1 sm:gap-2 w-1/2 justify-end">
                                     {foundations.map((foundation, colIdx) => {
-                                        const topCard = foundation.length > 0 ? foundation[foundation.length - 1] : null;
-                                        const isSelected = selected?.zone === 'foundation' && selected?.col === colIdx;
-                                        
-                                        // Empty placeholder icons
-                                        const foundationSuits = ['♥', '♦', '♣', '♠'];
-                                        const fColor = colIdx < 2 ? 'text-rose-900/30' : 'text-gray-900/30';
-
+                                        const topCard = foundation.length > 0 ? foundation[foundation.length - 1] : null; const isSelected = selected?.zone === 'foundation' && selected?.col === colIdx;
+                                        const foundationSuits = ['♥', '♦', '♣', '♠']; const fColor = colIdx < 2 ? 'text-rose-900/30' : 'text-gray-900/30';
                                         return (
                                             <div key={`found-${colIdx}`} className="relative">
-                                                {topCard ? (
-                                                    <CardView 
-                                                        card={topCard} 
-                                                        isSelected={isSelected}
-                                                        onClick={() => handleSlotClick('foundation', colIdx, foundation.length - 1)}
-                                                    />
-                                                ) : (
-                                                    <div 
-                                                        onClick={() => handleSlotClick('foundation', colIdx, -1)}
-                                                        className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/30 flex items-center justify-center cursor-pointer hover:bg-emerald-800/50"
-                                                    >
-                                                        <span className={`text-2xl sm:text-4xl ${fColor}`}>{foundationSuits[colIdx]}</span>
-                                                    </div>
-                                                )}
+                                                {topCard ? <CardView card={topCard} isSelected={isSelected} onClick={() => handleSlotClick('foundation', colIdx, foundation.length - 1)} /> : <div onClick={() => handleSlotClick('foundation', colIdx, -1)} className="w-10 sm:w-16 md:w-20 aspect-[2/3] rounded-md border-2 border-emerald-700 bg-emerald-900/30 flex items-center justify-center cursor-pointer hover:bg-emerald-800/50"><span className={`text-2xl sm:text-4xl ${fColor}`}>{foundationSuits[colIdx]}</span></div>}
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
-
-                            {/* Bottom Area: Tableau */}
                             <div className="flex justify-between gap-1 sm:gap-2 flex-1 mt-4">
                                 {tableau.map((column, colIdx) => (
-                                    <div 
-                                        key={`tab-${colIdx}`} 
-                                        className="flex flex-col flex-1 relative min-h-[150px]"
-                                    >
-                                        {column.length === 0 ? (
-                                            <CardView card={null} onClick={() => handleSlotClick('tableau', colIdx, -1)} className="mx-auto relative z-10" />
-                                        ) : (
-                                            column.map((card, rowIdx) => {
-                                                const isSelected = selected?.zone === 'tableau' && selected?.col === colIdx && rowIdx >= selected?.row;
-                                                return (
-                                                    <div 
-                                                        key={card.id} 
-                                                        className={`relative mx-auto ${rowIdx > 0 ? (card.hidden ? "-mt-[4.5rem] sm:-mt-[5rem] md:-mt-[5.5rem]" : "-mt-[4.5rem] sm:-mt-[4.5rem] md:-mt-[4.5rem]") : ""}`}
-                                                        style={{ zIndex: rowIdx + 10 }}
-                                                    >
-                                                        <CardView 
-                                                            card={card} 
-                                                            isSelected={isSelected}
-                                                            onClick={() => handleSlotClick('tableau', colIdx, rowIdx)}
-                                                        />
-                                                    </div>
-                                                )
-                                            })
-                                        )}
-                                        {/* Invisible touch target to make dropping on columns easier */}
-                                        <div 
-                                            className="absolute inset-0 z-0" 
-                                            onClick={() => handleSlotClick('tableau', colIdx, column.length > 0 ? column.length - 1 : -1)}
-                                        ></div>
+                                    <div key={`tab-${colIdx}`} className="flex flex-col flex-1 relative min-h-[150px]">
+                                        {column.length === 0 ? <CardView card={null} onClick={() => handleSlotClick('tableau', colIdx, -1)} className="mx-auto relative z-10" /> : column.map((card, rowIdx) => {
+                                            const isSelected = selected?.zone === 'tableau' && selected?.col === colIdx && rowIdx >= selected?.row;
+                                            return <div key={card.id} className={`relative mx-auto ${rowIdx > 0 ? (card.hidden ? "-mt-[4.5rem] sm:-mt-[5rem] md:-mt-[5.5rem]" : "-mt-[4.5rem] sm:-mt-[4.5rem] md:-mt-[4.5rem]") : ""}`} style={{ zIndex: rowIdx + 10 }}><CardView card={card} isSelected={isSelected} onClick={() => handleSlotClick('tableau', colIdx, rowIdx)} /></div>
+                                        })}
+                                        <div className="absolute inset-0 z-0" onClick={() => handleSlotClick('tableau', colIdx, column.length > 0 ? column.length - 1 : -1)}></div>
                                     </div>
                                 ))}
                             </div>
                         </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MODULE: TARGET SUM ---
+        const TargetSum = ({ onBack }) => {
+            const COLS = 6;
+            const ROWS = 6;
+            const GAME_TIME = 120; // 2 minutes
+            
+            const [grid, setGrid] = useState([]);
+            const [target, setTarget] = useState(0);
+            const [selected, setSelected] = useState([]);
+            const [score, setScore] = useState(0);
+            const [highScore, setHighScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(GAME_TIME);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [errorFlash, setErrorFlash] = useState(false);
+
+            useEffect(() => {
+                dbHelper.getHighScore('targetsum').then(setHighScore);
+                startNewGame();
+            }, []);
+
+            useEffect(() => {
+                let timer;
+                if (isPlaying && timeLeft > 0) {
+                    timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+                } else if (timeLeft === 0 && isPlaying) {
+                    setIsPlaying(false);
+                    dbHelper.saveScore('targetsum', score);
+                }
+                return () => clearInterval(timer);
+            }, [isPlaying, timeLeft, score]);
+
+            const generateNewTarget = () => {
+                // Random target between 10 and 22
+                setTarget(Math.floor(Math.random() * 13) + 10);
+            };
+
+            const startNewGame = () => {
+                let newGrid = [];
+                for(let r=0; r<ROWS; r++){
+                    let row = [];
+                    for(let c=0; c<COLS; c++) {
+                        row.push({ id: `${r}-${c}-${Date.now()}`, val: Math.floor(Math.random() * 9) + 1 });
+                    }
+                    newGrid.push(row);
+                }
+                setGrid(newGrid);
+                setSelected([]);
+                setScore(0);
+                setTimeLeft(GAME_TIME);
+                setIsPlaying(true);
+                generateNewTarget();
+            };
+
+            const handleTileClick = (r, c) => {
+                if (!isPlaying) return;
+                
+                const existingIdx = selected.findIndex(p => p.r === r && p.c === c);
+                let newSelected;
+                
+                if (existingIdx !== -1) {
+                    // Deselect
+                    newSelected = selected.filter((_, i) => i !== existingIdx);
+                } else {
+                    // Select
+                    newSelected = [...selected, {r, c}];
+                }
+                
+                setSelected(newSelected);
+                checkSum(newSelected);
+            };
+
+            const checkSum = (currentSelection) => {
+                const currentSum = currentSelection.reduce((sum, p) => sum + grid[p.r][p.c].val, 0);
+                
+                if (currentSum === target) {
+                    // Match!
+                    setScore(prev => prev + (currentSelection.length * 10));
+                    
+                    // Apply Gravity
+                    let newGrid = JSON.parse(JSON.stringify(grid));
+                    currentSelection.forEach(p => { newGrid[p.r][p.c] = null; });
+                    
+                    for (let c = 0; c < COLS; c++) {
+                        let emptySpaces = 0;
+                        for (let r = ROWS - 1; r >= 0; r--) {
+                            if (newGrid[r][c] === null) emptySpaces++;
+                            else if (emptySpaces > 0) {
+                                newGrid[r + emptySpaces][c] = newGrid[r][c];
+                                newGrid[r][c] = null;
+                            }
+                        }
+                        // Fill top
+                        for (let r = 0; r < emptySpaces; r++) {
+                            newGrid[r][c] = { id: `new-${c}-${r}-${Date.now()}`, val: Math.floor(Math.random() * 9) + 1 };
+                        }
+                    }
+                    
+                    setGrid(newGrid);
+                    setSelected([]);
+                    generateNewTarget();
+                    
+                } else if (currentSum > target) {
+                    // Over the limit
+                    setErrorFlash(true);
+                    setTimeout(() => setErrorFlash(false), 300);
+                    setSelected([]);
+                }
+            };
+
+            const isTileSelected = (r, c) => selected.some(p => p.r === r && p.c === c);
+            const currentSum = selected.reduce((sum, p) => sum + grid[p.r][p.c].val, 0);
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
+                    <TopBar title="Target Sum" onBack={onBack} score={score} highScore={highScore} time={timeLeft} />
+                    
+                    <div className="px-4 mb-4 flex justify-between gap-4">
+                        <div className="flex-1 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-center">
+                            <div className="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Target</div>
+                            <div className="text-4xl font-black text-indigo-700">{target}</div>
+                        </div>
+                        <div className={`flex-1 p-4 rounded-2xl shadow-inner border text-center transition-colors duration-200 ${errorFlash ? 'bg-rose-100 border-rose-300' : 'bg-indigo-50 border-indigo-100'}`}>
+                            <div className="text-sm text-indigo-400 font-bold uppercase tracking-wider mb-1">Current Sum</div>
+                            <div className={`text-4xl font-black ${errorFlash ? 'text-rose-600' : 'text-indigo-600'}`}>{currentSum}</div>
+                        </div>
+                    </div>
+
+                    {!isPlaying && timeLeft === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center animate-pulse">
+                            <h2 className="text-3xl font-black text-indigo-600 mb-2">Time's Up!</h2>
+                            <p className="text-gray-600 mb-6 font-medium">You scored {score} points.</p>
+                            <Button onClick={startNewGame} variant="primary">Play Again</Button>
+                        </div>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-start px-4">
+                            <div className="grid gap-2 bg-indigo-900 p-3 rounded-2xl w-full max-w-[360px]" style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}>
+                                {grid.map((row, r) => (
+                                    row.map((cell, c) => {
+                                        const selected = isTileSelected(r, c);
+                                        return (
+                                            <div 
+                                                key={cell.id}
+                                                onClick={() => handleTileClick(r, c)}
+                                                className={`aspect-square flex items-center justify-center text-2xl sm:text-3xl font-black rounded-xl cursor-pointer no-tap-highlight transition-all duration-200 shadow-sm
+                                                    ${selected ? 'bg-amber-400 text-white transform scale-95 shadow-inner' : 'bg-white text-indigo-900 hover:bg-indigo-50 hover:scale-105'}`}
+                                            >
+                                                {cell.val}
+                                            </div>
+                                        )
+                                    })
+                                ))}
+                            </div>
+                            <p className="text-sm text-gray-500 font-medium mt-6 text-center">Tap numbers that add up perfectly to the target.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MODULE: PATTERN RECALL ---
+        const PatternRecall = ({ onBack }) => {
+            const COLORS = [
+                'bg-rose-500', 'bg-blue-500', 'bg-green-500', 
+                'bg-amber-400', 'bg-purple-500', 'bg-orange-500', 
+                'bg-pink-500', 'bg-teal-500', 'bg-indigo-500'
+            ];
+            
+            const [sequence, setSequence] = useState([]);
+            const [playerStep, setPlayerStep] = useState(0);
+            const [activeTile, setActiveTile] = useState(null);
+            const [isShowingSequence, setIsShowingSequence] = useState(false);
+            const [gameOver, setGameOver] = useState(false);
+            const [score, setScore] = useState(0);
+            const [highScore, setHighScore] = useState(0);
+
+            const isMounted = useRef(true);
+
+            useEffect(() => {
+                dbHelper.getHighScore('patternrecall').then(setHighScore);
+                startNewGame();
+                return () => { isMounted.current = false; };
+            }, []);
+
+            const startNewGame = () => {
+                setSequence([Math.floor(Math.random() * 9)]);
+                setPlayerStep(0);
+                setScore(0);
+                setGameOver(false);
+                setIsShowingSequence(true);
+            };
+
+            const playSequence = async () => {
+                setIsShowingSequence(true);
+                await new Promise(r => setTimeout(r, 600)); // Pause before starting
+                
+                for (let i = 0; i < sequence.length; i++) {
+                    if (!isMounted.current) return;
+                    setActiveTile(sequence[i]);
+                    await new Promise(r => setTimeout(r, 500)); // Show duration
+                    if (!isMounted.current) return;
+                    setActiveTile(null);
+                    await new Promise(r => setTimeout(r, 200)); // Gap between flashes
+                }
+                
+                if (isMounted.current) setIsShowingSequence(false);
+            };
+
+            // Trigger playback when sequence changes and isShowingSequence is true
+            useEffect(() => {
+                if (isShowingSequence && !gameOver) {
+                    playSequence();
+                }
+            }, [sequence, isShowingSequence, gameOver]);
+
+            const handleTileClick = (index) => {
+                if (isShowingSequence || gameOver) return;
+
+                // Briefly flash the tile the user tapped
+                setActiveTile(index);
+                setTimeout(() => setActiveTile(null), 200);
+
+                if (index === sequence[playerStep]) {
+                    // Correct tap
+                    if (playerStep === sequence.length - 1) {
+                        // Completed the round
+                        const newScore = sequence.length;
+                        setScore(newScore);
+                        if (newScore > highScore) {
+                            setHighScore(newScore);
+                            dbHelper.saveScore('patternrecall', newScore);
+                        }
+                        
+                        setPlayerStep(0);
+                        setTimeout(() => {
+                            setSequence(prev => [...prev, Math.floor(Math.random() * 9)]);
+                            setIsShowingSequence(true);
+                        }, 500);
+                    } else {
+                        // Move to next step in current round
+                        setPlayerStep(prev => prev + 1);
+                    }
+                } else {
+                    // Incorrect tap
+                    setGameOver(true);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto w-full pb-8 select-none touch-none">
+                    <TopBar title="Pattern Recall" onBack={onBack} score={score} highScore={highScore} />
+                    
+                    <div className="text-center px-4 mb-8">
+                        {gameOver ? (
+                            <div className="animate-pulse">
+                                <h2 className="text-2xl font-black text-rose-600">Incorrect Sequence!</h2>
+                                <p className="text-gray-600 font-medium">You remembered {score} steps.</p>
+                            </div>
+                        ) : isShowingSequence ? (
+                            <div>
+                                <h2 className="text-2xl font-black text-indigo-600">Watch closely...</h2>
+                                <p className="text-gray-500 font-medium">Memorize the pattern.</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h2 className="text-2xl font-black text-teal-600">Your turn!</h2>
+                                <p className="text-gray-500 font-medium">Repeat the sequence.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex-1 flex flex-col items-center justify-start px-4">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-[340px] w-full bg-gray-100 p-4 rounded-2xl shadow-inner border border-gray-200">
+                            {Array(9).fill(null).map((_, i) => {
+                                const isActive = activeTile === i;
+                                return (
+                                    <div 
+                                        key={i}
+                                        onClick={() => handleTileClick(i)}
+                                        className={`aspect-square rounded-xl shadow-md transition-all duration-150 cursor-pointer ${COLORS[i]} 
+                                            ${isActive ? 'ring-4 ring-white ring-offset-2 scale-105 brightness-125' : 'hover:brightness-110 opacity-90'}`}
+                                    ></div>
+                                );
+                            })}
+                        </div>
+
+                        {gameOver && (
+                            <div className="mt-10">
+                                <Button onClick={startNewGame} variant="primary">Try Again</Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -1617,14 +1335,22 @@
                                 This was an application designed by <span className="font-bold text-indigo-700">Jim Liddle</span> to help his parents keep cognitively fit.
                             </p>
                             
-                            <h2 className="text-xl font-black text-indigo-900 mb-6">The app was designed with 6 exercises:</h2>
+                            <h2 className="text-xl font-black text-indigo-900 mb-6">The app was designed with 8 specific exercises:</h2>
                             
                             <div className="space-y-6">
                                 <div className="flex gap-4">
-                                    <div className="mt-1 text-emerald-600"><Icon name="Layers" size={28} /></div>
+                                    <div className="mt-1 text-emerald-600"><Icon name="Calculator" size={28} /></div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900 text-lg">Patience</h3>
-                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Challenges executive function, working memory, and strategic planning by requiring multi-step problem solving and sequencing.</p>
+                                        <h3 className="font-bold text-gray-900 text-lg">Target Sum</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Engages the parietal lobe through basic arithmetic and quantitative reasoning, improving numerical fluency and mental flexibility.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-purple-600"><Icon name="ActivitySquare" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Pattern Recall</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Directly trains visuospatial temporal memory, forcing the brain to encode and recall sequences in specific physical locations over time.</p>
                                     </div>
                                 </div>
 
@@ -1664,7 +1390,15 @@
                                     <div className="mt-1 text-blue-600"><Icon name="LayoutGrid" size={28} /></div>
                                     <div>
                                         <h3 className="font-bold text-gray-900 text-lg">Memory Match</h3>
-                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Directly targets short-term memory encoding and retrieval, along with sustained concentration and visual recognition.</p>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Directly targets short-term object-location encoding and retrieval, along with sustained concentration and visual recognition.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <div className="mt-1 text-emerald-800"><Icon name="Layers" size={28} /></div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 text-lg">Patience</h3>
+                                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">Challenges executive function, working memory, and strategic planning by requiring multi-step problem solving and sequencing.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1678,19 +1412,20 @@
         // 5. MAIN MENU & APP ROUTING
         // ==========================================
         const GAMES = [
+            { id: 'targetsum', name: 'Target Sum', desc: 'Find numbers that add up to the target.', icon: 'Calculator', color: 'bg-emerald-100 text-emerald-800', type: 'score' },
+            { id: 'patternrecall', name: 'Pattern Recall', desc: 'Memorize and repeat the flashing sequence.', icon: 'ActivitySquare', color: 'bg-purple-100 text-purple-800', type: 'score' },
             { id: 'wordle', name: 'Wordle', desc: 'Guess the 5-letter word in 6 tries.', icon: 'BrainCircuit', color: 'bg-teal-100 text-teal-800', type: 'score' },
             { id: 'wordsearch', name: 'Word Search', desc: 'Find hidden words in the grid.', icon: 'Search', color: 'bg-indigo-100 text-indigo-800', type: 'score' },
             { id: 'wordtower', name: 'Word Tower', desc: 'Connect adjacent letters to clear blocks.', icon: 'Blocks', color: 'bg-rose-100 text-rose-800', type: 'score' },
             { id: 'jigsaw', name: 'Mystery Jigsaw', desc: 'Piece together a beautiful random scene.', icon: 'Puzzle', color: 'bg-amber-100 text-amber-800', type: 'time' },
             { id: 'memorymatch', name: 'Memory Match', desc: 'Find the matching pairs with fewest moves.', icon: 'LayoutGrid', color: 'bg-blue-100 text-blue-800', type: 'moves' },
-            { id: 'patience', name: 'Patience', desc: 'Classic Klondike solitaire card game.', icon: 'Layers', color: 'bg-emerald-100 text-emerald-800', type: 'moves' },
+            { id: 'patience', name: 'Patience', desc: 'Classic Klondike solitaire card game.', icon: 'Layers', color: 'bg-emerald-200 text-emerald-900', type: 'moves' },
         ];
 
         const MainMenu = ({ onSelectGame }) => {
             const [scores, setScores] = useState({});
             const [showResetConfirm, setShowResetConfirm] = useState(false);
             
-            // PWA Install State
             const [deferredPrompt, setDeferredPrompt] = useState(null);
             const [isInstalled, setIsInstalled] = useState(false);
             const [showInstallInstructions, setShowInstallInstructions] = useState(false);
@@ -1698,178 +1433,79 @@
             const loadScores = async () => {
                 let s = {};
                 for (let g of GAMES) {
-                    if (g.type === 'score') {
-                        s[g.id] = await dbHelper.getHighScore(g.id);
-                    } else if (g.type === 'time') {
-                        const bt = await dbHelper.getBestTime(g.id);
-                        s[g.id] = bt !== null ? formatTime(bt) : '-';
-                    } else if (g.type === 'moves') {
-                        const bm = await dbHelper.getLeastMoves(g.id);
-                        s[g.id] = bm !== null ? `${bm} moves` : '-';
-                    }
+                    if (g.type === 'score') s[g.id] = await dbHelper.getHighScore(g.id);
+                    else if (g.type === 'time') { const bt = await dbHelper.getBestTime(g.id); s[g.id] = bt !== null ? formatTime(bt) : '-'; }
+                    else if (g.type === 'moves') { const bm = await dbHelper.getLeastMoves(g.id); s[g.id] = bm !== null ? `${bm} moves` : '-'; }
                 }
                 setScores(s);
             };
 
             useEffect(() => {
                 loadScores();
-
-                // Check if running as a standalone installed PWA
-                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-                    setIsInstalled(true);
-                }
-
-                // Listen for native install prompt (Chrome/Edge/Android)
-                const handleBeforeInstallPrompt = (e) => {
-                    e.preventDefault();
-                    setDeferredPrompt(e);
-                };
-
-                // Listen for successful installation
-                const handleAppInstalled = () => {
-                    setIsInstalled(true);
-                    setDeferredPrompt(null);
-                };
-
-                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-                window.addEventListener('appinstalled', handleAppInstalled);
-
-                return () => {
-                    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-                    window.removeEventListener('appinstalled', handleAppInstalled);
-                };
+                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) setIsInstalled(true);
+                const handleBeforeInstallPrompt = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+                const handleAppInstalled = () => { setIsInstalled(true); setDeferredPrompt(null); };
+                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt); window.addEventListener('appinstalled', handleAppInstalled);
+                return () => { window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt); window.removeEventListener('appinstalled', handleAppInstalled); };
             }, []);
 
-            const handleReset = async () => {
-                await dbHelper.clearAllData();
-                await loadScores();
-                setShowResetConfirm(false);
-            };
+            const handleReset = async () => { await dbHelper.clearAllData(); await loadScores(); setShowResetConfirm(false); };
 
             const handleInstallClick = async () => {
                 if (deferredPrompt) {
-                    // Trigger native Chrome/Android prompt
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') setIsInstalled(true);
-                    setDeferredPrompt(null);
-                } else {
-                    // Trigger manual instructions modal for iOS / Firefox / Desktop Safari
-                    setShowInstallInstructions(true);
-                }
+                    deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') setIsInstalled(true); setDeferredPrompt(null);
+                } else { setShowInstallInstructions(true); }
             };
 
             const getInstallInstructions = () => {
                 const ua = navigator.userAgent.toLowerCase();
-                const isIos = /iphone|ipad|ipod/.test(ua);
-                const isAndroid = /android/.test(ua);
-                const isChrome = /chrome|chromium|crios/.test(ua);
-                
-                if (isIos) {
-                    return {
-                        title: "Install on iPhone / iPad",
-                        text: "Tap the Share icon at the bottom or top of your screen, then scroll down and tap 'Add to Home Screen'.",
-                        icon: "Share"
-                    };
-                }
-                if (isAndroid && isChrome) {
-                    return {
-                        title: "Install on Android",
-                        text: "Tap the Menu icon (⋮) at the top right of your browser, then tap 'Add to Home screen'.",
-                        icon: "MoreVertical"
-                    };
-                }
-                return {
-                    title: "Install App",
-                    text: "Look for an 'Install' icon in your browser's address bar, or check your browser menu for an 'Add to Home screen' option.",
-                    icon: "Download"
-                };
+                if (/iphone|ipad|ipod/.test(ua)) return { title: "Install on iPhone / iPad", text: "Tap the Share icon at the bottom or top of your screen, then scroll down and tap 'Add to Home Screen'.", icon: "Share" };
+                if (/android/.test(ua) && /chrome|chromium|crios/.test(ua)) return { title: "Install on Android", text: "Tap the Menu icon (⋮) at the top right of your browser, then tap 'Add to Home screen'.", icon: "MoreVertical" };
+                return { title: "Install App", text: "Look for an 'Install' icon in your browser's address bar, or check your browser menu for an 'Add to Home screen' option.", icon: "Download" };
             };
 
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto p-6 pt-12">
                     <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-600 text-white shadow-lg mb-4">
-                            <Icon name="Activity" size={40} />
-                        </div>
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-600 text-white shadow-lg mb-4"><Icon name="Activity" size={40} /></div>
                         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Cognitive Agility</h1>
                         <p className="text-lg text-gray-600 mt-2">Daily exercises to keep your mind sharp.</p>
                     </div>
 
                     <div className="flex flex-col gap-4">
                         {GAMES.map(game => (
-                            <div 
-                                key={game.id}
-                                onClick={() => onSelectGame(game.id)}
-                                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer flex items-center gap-4 active:scale-95 transition-transform"
-                            >
-                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${game.color}`}>
-                                    <Icon name={game.icon} size={32} />
-                                </div>
-                                <div className="flex-1">
-                                    <h2 className="text-xl font-bold text-gray-900">{game.name}</h2>
-                                    <p className="text-sm text-gray-500 mt-1">{game.desc}</p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Best</div>
-                                    <div className="text-lg font-black text-indigo-600">{scores[game.id] || 0}</div>
-                                </div>
+                            <div key={game.id} onClick={() => onSelectGame(game.id)} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer flex items-center gap-4 active:scale-95 transition-transform">
+                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${game.color}`}><Icon name={game.icon} size={32} /></div>
+                                <div className="flex-1"><h2 className="text-xl font-bold text-gray-900">{game.name}</h2><p className="text-sm text-gray-500 mt-1">{game.desc}</p></div>
+                                <div className="text-right"><div className="text-xs text-gray-400 font-bold uppercase tracking-wider">Best</div><div className="text-lg font-black text-indigo-600">{scores[game.id] || 0}</div></div>
                             </div>
                         ))}
                     </div>
                     
                     <div className="mt-auto pt-8 flex flex-col items-center gap-4">
                         <div className="flex flex-wrap justify-center gap-3">
-                            <button 
-                                onClick={() => onSelectGame('about')} 
-                                className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                            >
-                                <Icon name="Info" size={16} /> About this App
-                            </button>
-                            
-                            {!isInstalled && (
-                                <button 
-                                    onClick={handleInstallClick} 
-                                    className="text-sm font-bold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                                >
-                                    <Icon name="Download" size={16} /> Install App
-                                </button>
-                            )}
-
-                            <button 
-                                onClick={() => setShowResetConfirm(true)} 
-                                className="text-sm font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                            >
-                                <Icon name="Trash2" size={16} /> Reset
-                            </button>
+                            <button onClick={() => onSelectGame('about')} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"><Icon name="Info" size={16} /> About</button>
+                            {!isInstalled && <button onClick={handleInstallClick} className="text-sm font-bold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"><Icon name="Download" size={16} /> Install App</button>}
+                            <button onClick={() => setShowResetConfirm(true)} className="text-sm font-bold text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"><Icon name="Trash2" size={16} /> Reset</button>
                         </div>
-                        <div className="text-center text-sm text-gray-400 font-medium">
-                            Designed for mental fitness & cognitive agility.
-                        </div>
+                        <div className="text-center text-sm text-gray-400 font-medium">Designed for mental fitness & cognitive agility.</div>
                     </div>
 
-                    {/* Reset Confirmation Modal */}
                     {showResetConfirm && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                             <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl tile-pop">
                                 <Icon name="AlertTriangle" size={48} className="mx-auto text-rose-500 mb-4" />
                                 <h3 className="text-2xl font-black text-gray-900 mb-2">Reset Progress?</h3>
                                 <p className="text-gray-600 mb-6 font-medium">This will permanently delete all your high scores and clear your played puzzle history. This cannot be undone.</p>
-                                <div className="flex gap-3 justify-center">
-                                    <Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">Cancel</Button>
-                                    <Button variant="danger" onClick={handleReset} className="flex-1">Reset</Button>
-                                </div>
+                                <div className="flex gap-3 justify-center"><Button variant="outline" onClick={() => setShowResetConfirm(false)} className="flex-1">Cancel</Button><Button variant="danger" onClick={handleReset} className="flex-1">Reset</Button></div>
                             </div>
                         </div>
                     )}
-
-                    {/* PWA Install Instructions Modal */}
                     {showInstallInstructions && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                             <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl tile-pop">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 text-teal-600 mb-4">
-                                    <Icon name={getInstallInstructions().icon} size={32} />
-                                </div>
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 text-teal-600 mb-4"><Icon name={getInstallInstructions().icon} size={32} /></div>
                                 <h3 className="text-2xl font-black text-gray-900 mb-2">{getInstallInstructions().title}</h3>
                                 <p className="text-gray-600 mb-6 font-medium leading-relaxed">{getInstallInstructions().text}</p>
                                 <Button variant="primary" onClick={() => setShowInstallInstructions(false)} className="w-full">Got it</Button>
@@ -1887,28 +1523,14 @@
 
             useEffect(() => {
                 dbHelper.init().then(() => {
-                    // Asynchronously load a massive 170k+ word Scrabble dictionary for extensive validation support
                     fetch('https://raw.githubusercontent.com/redbo/scrabble/master/dictionary.txt')
-                        .then(res => {
-                            if (!res.ok) throw new Error("Network response failed");
-                            return res.text();
-                        })
+                        .then(res => { if (!res.ok) throw new Error("Network response failed"); return res.text(); })
                         .then(text => {
-                            text.split('\n').forEach(w => {
-                                const clean = w.trim().toLowerCase();
-                                if (clean.length >= 3) VALIDATION_DICTIONARY.add(clean);
-                            });
+                            text.split('\n').forEach(w => { const clean = w.trim().toLowerCase(); if (clean.length >= 3) VALIDATION_DICTIONARY.add(clean); });
                             setDbReady(true);
                         })
-                        .catch(e => {
-                            console.error("Failed to load dictionary:", e);
-                            setIsOffline(true);
-                        });
-                        
-                }).catch(e => {
-                    console.error("Database initialization failed:", e);
-                    setIsOffline(true);
-                });
+                        .catch(e => { console.error("Failed to load dictionary:", e); setIsOffline(true); });
+                }).catch(e => { console.error("Database initialization failed:", e); setIsOffline(true); });
             }, []);
 
             if (isOffline) {
@@ -1918,28 +1540,26 @@
                             <Icon name="WifiOff" size={48} className="mx-auto text-rose-500 mb-4" />
                             <h2 className="text-2xl font-black text-gray-900 mb-2">Are you online?</h2>
                             <p className="text-gray-600 mb-6 font-medium">Unable to load module data. Please go online and refresh the app.</p>
-                            <Button onClick={() => window.location.reload()} variant="primary" className="mx-auto w-full">
-                                Refresh App
-                            </Button>
+                            <Button onClick={() => window.location.reload()} variant="primary" className="mx-auto w-full">Refresh App</Button>
                         </div>
                     </div>
                 );
             }
 
-            if (!dbReady) {
-                return <div className="min-h-screen flex items-center justify-center text-indigo-600 font-bold text-xl animate-pulse">Loading modules...</div>;
-            }
+            if (!dbReady) return <div className="min-h-screen flex items-center justify-center text-indigo-600 font-bold text-xl animate-pulse">Loading modules...</div>;
 
             return (
                 <div>
                     {currentView === 'menu' && <MainMenu onSelectGame={setCurrentView} />}
                     {currentView === 'about' && <About onBack={() => setCurrentView('menu')} />}
-                    {currentView === 'patience' && <Patience onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'targetsum' && <TargetSum onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'patternrecall' && <PatternRecall onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordle' && <Wordle onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordsearch' && <WordSearch onBack={() => setCurrentView('menu')} />}
                     {currentView === 'wordtower' && <WordTower onBack={() => setCurrentView('menu')} />}
                     {currentView === 'jigsaw' && <JigsawPuzzle onBack={() => setCurrentView('menu')} />}
                     {currentView === 'memorymatch' && <MemoryMatch onBack={() => setCurrentView('menu')} />}
+                    {currentView === 'patience' && <Patience onBack={() => setCurrentView('menu')} />}
                 </div>
             );
         };
