@@ -326,16 +326,45 @@
             const handleInputChange = (e) => {
                 if (gameStatus !== "playing") return;
                 const val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
-                if (val.length < 5) setCurrentGuess(val);
-                else if (val.length === 5) processGuess(val);
+                
+                if (val.length < 5) {
+                    setCurrentGuess(val);
+                } else if (val.length === 5) {
+                    // Auto-submit instantly when 5 letters are entered
+                    processGuess(val);
+                }
             };
 
             const getLetterStyle = (letter, index, guess) => {
                 if (!guess) return "bg-white border-2 border-gray-300 text-gray-800";
+                
+                // Logic for Wordle coloring
                 const solArray = solution.split('');
                 const guessArray = guess.split('');
+                
+                // 1. Exact match (Green)
                 if (guessArray[index] === solArray[index]) return "bg-teal-500 border-teal-500 text-white";
-                if (solArray.includes(guessArray[index])) return "bg-amber-400 border-amber-400 text-white";
+                
+                // 2. Count total occurrences of this letter in the solution
+                const solCount = solArray.filter(c => c === letter).length;
+                
+                // 3. Count how many exact matches (greens) exist for this letter in the whole word
+                const exactMatches = guessArray.filter((c, i) => c === letter && solArray[i] === letter).length;
+                
+                // 4. Count how many times this letter has been highlighted yellow BEFORE the current index
+                let earlierYellows = 0;
+                for (let i = 0; i < index; i++) {
+                    if (guessArray[i] === letter && solArray[i] !== letter) {
+                        earlierYellows++;
+                    }
+                }
+                
+                // 5. If there are still unmatched occurrences of this letter in the solution, it's yellow
+                if (solCount - exactMatches - earlierYellows > 0) {
+                    return "bg-amber-400 border-amber-400 text-white";
+                }
+                
+                // Otherwise, it's incorrect (Gray)
                 return "bg-gray-400 border-gray-400 text-white";
             };
 
@@ -1200,7 +1229,7 @@
             const [playerStep, setPlayerStep] = useState(0);
             const [activeTile, setActiveTile] = useState(null);
             const [isShowingSequence, setIsShowingSequence] = useState(false);
-            const [gameOver, setGameOver] = useState(false);
+            const [gameState, setGameState] = useState('idle'); // 'idle', 'playing', 'gameover'
             const [score, setScore] = useState(0);
             const [highScore, setHighScore] = useState(0);
 
@@ -1208,15 +1237,15 @@
 
             useEffect(() => {
                 dbHelper.getHighScore('patternrecall').then(setHighScore);
-                startNewGame();
+                // Removed auto-start to wait for user interaction
                 return () => { isMounted.current = false; };
             }, []);
 
-            const startNewGame = () => {
+            const handleStart = () => {
                 setSequence([Math.floor(Math.random() * 9)]);
                 setPlayerStep(0);
                 setScore(0);
-                setGameOver(false);
+                setGameState('playing');
                 setIsShowingSequence(true);
             };
 
@@ -1238,17 +1267,13 @@
 
             // Trigger playback when sequence changes and isShowingSequence is true
             useEffect(() => {
-                if (isShowingSequence && !gameOver) {
+                if (isShowingSequence && gameState === 'playing') {
                     playSequence();
                 }
-            }, [sequence, isShowingSequence, gameOver]);
+            }, [sequence, isShowingSequence, gameState]);
 
             const handleTileClick = (index) => {
-                if (isShowingSequence || gameOver) return;
-
-                // Briefly flash the tile the user tapped
-                setActiveTile(index);
-                setTimeout(() => setActiveTile(null), 200);
+                if (isShowingSequence || gameState !== 'playing') return;
 
                 if (index === sequence[playerStep]) {
                     // Correct tap
@@ -1272,7 +1297,7 @@
                     }
                 } else {
                     // Incorrect tap
-                    setGameOver(true);
+                    setGameState('gameover');
                 }
             };
 
@@ -1281,7 +1306,12 @@
                     <TopBar title="Pattern Recall" onBack={onBack} score={score} highScore={highScore} />
                     
                     <div className="text-center px-4 mb-8">
-                        {gameOver ? (
+                        {gameState === 'idle' ? (
+                            <div>
+                                <h2 className="text-2xl font-black text-indigo-600 mb-4">Ready to test your memory?</h2>
+                                <Button onClick={handleStart} variant="primary" className="mx-auto">Start Game</Button>
+                            </div>
+                        ) : gameState === 'gameover' ? (
                             <div className="animate-pulse">
                                 <h2 className="text-2xl font-black text-rose-600">Incorrect Sequence!</h2>
                                 <p className="text-gray-600 font-medium">You remembered {score} steps.</p>
@@ -1303,20 +1333,29 @@
                         <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-[340px] w-full bg-gray-100 p-4 rounded-2xl shadow-inner border border-gray-200">
                             {Array(9).fill(null).map((_, i) => {
                                 const isActive = activeTile === i;
+                                const isUserTurn = !isShowingSequence && gameState === 'playing';
+                                
                                 return (
                                     <div 
                                         key={i}
-                                        onClick={() => handleTileClick(i)}
+                                        onPointerDown={(e) => {
+                                            if (isUserTurn) handleTileClick(i);
+                                        }}
                                         className={`aspect-square rounded-xl shadow-md transition-all duration-150 cursor-pointer ${COLORS[i]} 
-                                            ${isActive ? 'ring-4 ring-white ring-offset-2 scale-105 brightness-125' : 'hover:brightness-110 opacity-90'}`}
+                                            ${isActive 
+                                                ? 'ring-4 ring-white ring-offset-2 scale-110 brightness-150 opacity-100 z-10 shadow-xl' 
+                                                : 'opacity-75'
+                                            }
+                                            ${isUserTurn ? 'active:scale-90 active:brightness-75 hover:opacity-90' : ''}
+                                        `}
                                     ></div>
                                 );
                             })}
                         </div>
 
-                        {gameOver && (
+                        {gameState === 'gameover' && (
                             <div className="mt-10">
-                                <Button onClick={startNewGame} variant="primary">Try Again</Button>
+                                <Button onClick={handleStart} variant="primary">Try Again</Button>
                             </div>
                         )}
                     </div>
